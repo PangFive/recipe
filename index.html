@@ -14,11 +14,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script type="module">
-/* Jembatan Firebase: dimuat sebagai module, hasilnya ditaruh di window.CLOUD
-   supaya skrip utama (non-module) bisa memakainya. */
+/* Jembatan Firebase. Hasilnya ditaruh di window.CLOUD supaya skrip utama bisa memakainya. */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
-import { getDatabase, ref, get, set, remove, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult,
+         signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getDatabase, ref, get, update, remove, set, onValue, query, orderByChild,
+         limitToLast } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAVKXiuHoA3_HB9ZeLJ7dJEHQKFK8c4mEE",
@@ -30,17 +31,38 @@ const firebaseConfig = {
   appId: "1:758271658869:web:1d59ba8b3dc18bb241a13c"
 };
 
-const C = { online:false, ready:false, uid:null, err:null };
+const C = { online:false, ready:false, user:null, err:null };
 window.CLOUD = C;
-const ping = () => window.dispatchEvent(new CustomEvent("cloud-change"));
+const ping = what => window.dispatchEvent(new CustomEvent("cloud-change", {detail: what}));
 const clean = o => JSON.parse(JSON.stringify(o));
 
 try{
   const app  = initializeApp(firebaseConfig);
   const db   = getDatabase(app);
   const auth = getAuth(app);
+  const prov = new GoogleAuthProvider();
   C.online = true;
 
+  C.signIn = async () => {
+    C.err = null; ping();
+    try{ await signInWithPopup(auth, prov); }
+    catch(e){
+      const fallback = ["auth/popup-blocked", "auth/operation-not-supported-in-this-environment",
+                        "auth/cancelled-popup-request", "auth/popup-closed-by-user"];
+      if(fallback.includes(e.code)){
+        try{ await signInWithRedirect(auth, prov); }
+        catch(e2){ C.err = e2.code || e2.message; ping(); }
+      }else{ C.err = e.code || e.message; ping(); }
+    }
+  };
+  C.signOut = () => signOut(auth);
+
+  /* data pribadi: users/{uid} */
+  C.pull  = async () => { const s = await get(ref(db, "users/" + C.user.uid)); return s.val() || {}; };
+  C.push  = async patch => { await update(ref(db, "users/" + C.user.uid), patch); };
+  C.watch = cb => onValue(ref(db, "users/" + C.user.uid), s => cb(s.val() || {}), () => {});
+
+  /* resep yang dibagikan: shared/{id} */
   C.list = async () => {
     const snap = await get(query(ref(db, "shared"), orderByChild("updatedAt"), limitToLast(200)));
     const val = snap.val() || {};
@@ -51,12 +73,12 @@ try{
     const snap = await get(ref(db, "shared/" + id));
     return snap.exists() ? Object.assign({key:id}, snap.val()) : null;
   };
-  C.publish = async (recipe, by) => {
-    if(!C.uid) throw new Error("Login anonim belum aktif");
-    const id = String(recipe.id).replace(/[^A-Za-z0-9_-]/g, "") + "-" + C.uid.slice(0, 6);
+  C.publish = async recipe => {
+    if(!C.user) throw new Error("Belum masuk");
+    const id = String(recipe.id).replace(/[^A-Za-z0-9_-]/g, "") + "-" + C.user.uid.slice(0, 6);
     await set(ref(db, "shared/" + id), {
-      owner: C.uid,
-      by: (by || "Anonim").slice(0, 40),
+      owner: C.user.uid,
+      by: (C.user.name || "Pengguna").slice(0, 40),
       name: String(recipe.name).slice(0, 80),
       kind: recipe.kind,
       updatedAt: Date.now(),
@@ -66,9 +88,18 @@ try{
   };
   C.unpublish = async id => { await remove(ref(db, "shared/" + id)); };
 
-  onAuthStateChanged(auth, u => { C.uid = u ? u.uid : null; C.ready = !!u; if(u) C.err = null; ping(); });
-  C.retry = () => { C.err = null; ping(); signInAnonymously(auth).catch(e => { C.err = e.code || e.message; ping(); }); };
-  C.retry();
+  getRedirectResult(auth).catch(e => { C.err = e.code || e.message; ping(); });
+  onAuthStateChanged(auth, u => {
+    C.user = u ? {
+      uid: u.uid,
+      name: u.displayName || (u.email || "").split("@")[0] || "Pengguna",
+      email: u.email || "",
+      photo: u.photoURL || ""
+    } : null;
+    C.ready = !!u;
+    if(u) C.err = null;
+    ping("auth");
+  });
 }catch(e){
   C.err = e.message || String(e);
 }
@@ -1236,6 +1267,14 @@ ping();
   @keyframes drift{from{transform:translateX(0)}to{transform:translateX(90px)}}
   .waveG{animation:drift 3.2s linear infinite}
   .muted{color:var(--muted)}
+  .acc b{font-family:var(--serif);font-size:16px;font-weight:500}
+  .accrow{display:flex;align-items:center;gap:12px}
+  .ava{width:42px;height:42px;border-radius:50%;flex:none;object-fit:cover;background:var(--sand)}
+  .ava.ini{display:grid;place-items:center;font-family:var(--serif);font-size:19px;color:var(--green)}
+  .accbd{flex:1;min-width:0}
+  .accbd b{display:block;font-size:15.5px}
+  .accbd span{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #syncline{margin:11px 0 0;font-size:12.5px}
   .sharebox{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
   .sharebox code{
     display:block;background:var(--paper);border:1px solid var(--line);border-radius:11px;
@@ -1307,7 +1346,7 @@ const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
 /* =========================================================
    2. STORE
    ========================================================= */
-const store = { custom:{}, deleted:[], favs:[], sound:true, interval:0, last:null, shares:{}, author:"" };
+const store = { custom:{}, tombs:{}, favs:[], sound:true, interval:0, last:null, shares:{}, metaAt:1 };
 let dirty = false;
 
 const KEY = "resep:v2";
@@ -1327,20 +1366,29 @@ const DB = {
 };
 async function loadStore(){
   try{ const raw = await DB.get(); if(raw) Object.assign(store, JSON.parse(raw)); }catch(e){}
+  migrateStore();
   render();
 }
-async function saveStore(){ dirty = !(await DB.set(JSON.stringify(store))); }
+function migrateStore(){
+  store.tombs = store.tombs || {};
+  (store.deleted || []).forEach(id => { if(!store.tombs[id]) store.tombs[id] = 1; });
+  delete store.deleted;
+  delete store.author;
+  Object.values(store.custom).forEach(r => { if(!r.updatedAt) r.updatedAt = 1; });
+  store.metaAt = store.metaAt || 1;
+}
+async function saveStore(fromSync){
+  dirty = !(await DB.set(JSON.stringify(store)));
+  if(!fromSync) scheduleSync();
+}
 
 function recipes(){
-  const del = new Set(store.deleted);
-  const base = DEFAULTS.filter(r => !del.has(r.id))
-                       .map(r => store.custom[r.id] ? store.custom[r.id] : r);
-  const extra = Object.values(store.custom).filter(r => !DEFAULTS.some(d => d.id === r.id) && !del.has(r.id));
-  return base.concat(extra);
+  return Object.values(store.custom)
+    .filter(r => !store.tombs[r.id] || (r.updatedAt || 1) >= store.tombs[r.id]);
 }
 const byId = id => recipes().find(r => r.id === id);
-const isEdited = id => !!store.custom[id];
-const isCustom = id => !DEFAULTS.some(d => d.id === id);
+const isEdited = () => false;
+const isCustom = () => true;
 
 /* =========================================================
    3. HELPERS
@@ -1599,6 +1647,8 @@ function homeView(){
       <p class="today">${todayText()}</p>
     </div>
 
+    ${accountCard()}
+
     ${all.length ? "" : `<div class="tile sand" style="margin-top:16px;padding:18px">
       <span class="t-lbl">Mulai di sini</span>
       <h2 class="serif" style="font-size:21px;font-weight:500;margin-top:7px">Buku resep masih kosong</h2>
@@ -1659,8 +1709,6 @@ function homeView(){
       <button data-import>Impor data</button>
       <input type="file" id="fimp" accept="application/json,.json" hidden>
     </div>
-    <p class="foot">${all.length} entri tersimpan di perangkat ini</p>
-    <p class="foot" id="pwastat" style="margin-top:-16px"></p>
   </div>`;
 }
 
@@ -1705,7 +1753,6 @@ function listView(){
     <div class="search">${ICON.search}<input id="q" type="search" placeholder="Cari resep, bahan, dripper" value="${esc(state.q)}"></div>
     <div class="chips">${chips}</div>
     ${list.length ? list.map(rowHTML).join("") : '<p class="empty">Belum ada yang cocok. Ganti kata kunci atau buat resep baru.</p>'}
-    <p class="foot">${list.length} resep</p>
   </div>`;
 }
 
@@ -1719,7 +1766,6 @@ function notesView(){
       <span class="ic blue">${ICON.plus}</span>
       <span class="bd"><b>Catatan baru</b><span>simpan patokan rasio sendiri</span></span>
     </button>
-    <p class="foot">${notes.length} catatan</p>
   </div>`;
 }
 
@@ -1797,8 +1843,7 @@ function brewDetail(r, dose){
     <button class="btn" data-brew>${ICON.play} Mulai seduh</button>
     <button class="btn ghost" data-edit>Edit</button>
   </div>
-  ${state.view === "detail" ? shareCard(r) : ""}
-  <p class="foot">Semua angka menyesuaikan berat kopi di atas.</p>`;
+  ${state.view === "detail" ? shareCard(r) : ""}`;
 }
 
 function mixDetail(r, mult){
@@ -1839,6 +1884,132 @@ function noteDetail(r, g){
 }
 
 
+
+/* ============ sinkronisasi dua arah ============ */
+const SYNC = { status:"idle", at:0, err:null, timer:null, watching:false, busy:false };
+
+function scheduleSync(){
+  clearTimeout(SYNC.timer);
+  SYNC.timer = setTimeout(syncNow, 1200);
+}
+
+/* Gabungkan data server dengan data lokal.
+   Aturan: yang stempel waktunya paling baru menang, per resep.
+   Penghapusan disimpan sebagai nisan supaya tidak "hidup lagi" dari perangkat lain. */
+function mergeRemote(R){
+  R = R || {};
+  const rRec = R.recipes || {}, rTomb = R.tombs || {}, rMeta = R.meta || {};
+  const ids = new Set([].concat(Object.keys(store.custom), Object.keys(store.tombs),
+                                Object.keys(rRec), Object.keys(rTomb)));
+  const patch = {};
+  let changed = false;
+
+  ids.forEach(id => {
+    const lRec  = store.custom[id];
+    const lTs   = lRec ? (lRec.updatedAt || 1) : 0;
+    const lTomb = store.tombs[id] || 0;
+    const rRc   = rRec[id];
+    const rTs   = rRc ? (rRc.updatedAt || 1) : 0;
+    const rTb   = rTomb[id] || 0;
+    const lBest = Math.max(lTs, lTomb), rBest = Math.max(rTs, rTb);
+
+    if(rBest > lBest){
+      if(rTb >= rTs){ delete store.custom[id]; store.tombs[id] = rTb; }
+      else { store.custom[id] = rRc; delete store.tombs[id]; }
+      changed = true;
+    }else if(lBest > rBest){
+      if(lTomb >= lTs){ patch["recipes/" + id] = null; patch["tombs/" + id] = lTomb; }
+      else { patch["recipes/" + id] = lRec; patch["tombs/" + id] = null; }
+    }
+  });
+
+  const lMeta = store.metaAt || 0, rM = rMeta.updatedAt || 0;
+  if(rM > lMeta){
+    store.favs = rMeta.favs || [];
+    store.shares = rMeta.shares || {};
+    store.metaAt = rM;
+    changed = true;
+  }else if(lMeta > rM){
+    patch["meta"] = { favs: store.favs || [], shares: store.shares || {}, updatedAt: lMeta };
+  }
+  return { patch, changed };
+}
+
+async function syncNow(){
+  const c = cloud();
+  if(!c.ready || !c.pull || SYNC.busy) return;
+  if(!navigator.onLine){ SYNC.status = "offline"; refreshSync(); return; }
+  SYNC.busy = true; SYNC.status = "syncing"; SYNC.err = null; refreshSync();
+  try{
+    const R = await c.pull();
+    const { patch, changed } = mergeRemote(R);
+    if(Object.keys(patch).length) await c.push(patch);
+    await saveStore(true);
+    SYNC.status = "ok"; SYNC.at = Date.now();
+    if(changed) render();
+    startWatch();
+  }catch(e){
+    SYNC.status = "err"; SYNC.err = e.message || String(e);
+  }
+  SYNC.busy = false; refreshSync();
+}
+
+/* Dengarkan perubahan dari perangkat lain secara langsung. */
+function startWatch(){
+  const c = cloud();
+  if(SYNC.watching || !c.watch || !c.ready) return;
+  SYNC.watching = true;
+  c.watch(async R => {
+    if(SYNC.busy) return;
+    const { patch, changed } = mergeRemote(R);
+    if(changed || Object.keys(patch).length){
+      await saveStore(true);
+      if(Object.keys(patch).length && navigator.onLine){ try{ await c.push(patch); }catch(e){} }
+      SYNC.at = Date.now(); SYNC.status = "ok";
+      render();
+    }
+  });
+}
+
+function refreshSync(){
+  const el = document.getElementById("syncline");
+  if(el) el.textContent = syncText();
+}
+function syncText(){
+  const c = cloud();
+  if(!c.ready) return "";
+  if(!navigator.onLine) return "Offline. Perubahan disimpan dan akan dikirim saat online.";
+  if(SYNC.status === "syncing") return "Menyinkronkan...";
+  if(SYNC.status === "err") return "Gagal sinkron: " + esc(SYNC.err || "");
+  if(SYNC.at) return "Tersinkron " + new Date(SYNC.at).toLocaleTimeString("id-ID", {hour:"2-digit", minute:"2-digit"});
+  return "Siap disinkronkan";
+}
+
+window.addEventListener("online", syncNow);
+window.addEventListener("offline", refreshSync);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) syncNow(); });
+setInterval(() => { if(!document.hidden && navigator.onLine) syncNow(); }, 120000);
+
+/* ============ kartu akun ============ */
+function accountCard(){
+  const c = cloud();
+  if(!c.online) return `<div class="card acc">
+    <b>Akun</b><p class="muted">Server tidak bisa dihubungi. ${esc(errText(c.err))} Data tetap tersimpan di perangkat ini.</p></div>`;
+  if(!c.user) return `<div class="card acc">
+    <b>Masuk untuk sinkron</b>
+    <p class="muted">Tanpa masuk, resep hanya tersimpan di perangkat ini. Setelah masuk, semua resep ikut tersimpan di akunmu dan otomatis muncul di perangkat lain.</p>
+    ${c.err ? `<p class="muted">${esc(errText(c.err))}</p>` : ""}
+    <div class="cta"><button class="btn" data-signin>Masuk dengan Google</button></div></div>`;
+  return `<div class="card acc">
+    <div class="accrow">
+      ${c.user.photo ? `<img class="ava" src="${esc(c.user.photo)}" alt="">`
+                     : `<span class="ava ini">${esc((c.user.name || "?").slice(0,1).toUpperCase())}</span>`}
+      <span class="accbd"><b>${esc(c.user.name)}</b><span class="muted">${esc(c.user.email)}</span></span>
+      <button class="lnk" data-signout>Keluar</button>
+    </div>
+    <p class="muted" id="syncline">${syncText()}</p></div>`;
+}
+
 /* ============ berbagi & jelajah ============ */
 window.CLOUD = window.CLOUD || {online:false, ready:false, uid:null,
   err:"SDK Firebase belum termuat, mungkin sedang offline"};
@@ -1858,9 +2029,10 @@ function shareCard(r){
   const c = cloud(), sid = store.shares[r.id];
   if(!c.online) return `<div class="card"><b>Bagikan resep</b>
     <p class="muted">Server berbagi tidak bisa dihubungi. ${esc(errText(c.err))} Aplikasi tetap jalan seperti biasa.</p></div>`;
-  if(!c.ready) return `<div class="card"><b>Bagikan resep</b>
-    <p class="muted">${c.err ? esc(errText(c.err)) : "Menyambung ke server berbagi..."}</p>
-    ${c.err ? '<div class="cta"><button class="btn ghost" style="flex:1" data-retryauth>Coba lagi</button></div>' : ""}</div>`;
+  if(!c.user) return `<div class="card"><b>Bagikan resep</b>
+    <p class="muted">Masuk dulu untuk membagikan resep. Namamu dipakai sebagai nama pembagi.</p>
+    ${c.err ? `<p class="muted">${esc(errText(c.err))}</p>` : ""}
+    <div class="cta"><button class="btn" data-signin>Masuk dengan Google</button></div></div>`;
   return `<div class="card">
     <div class="opt" style="margin-top:0">
       <span><b style="font-size:15px">Bagikan ke publik</b>
@@ -1873,9 +2045,7 @@ function shareCard(r){
       <div class="cta" style="margin-top:10px">
         <button class="btn" data-copy="${esc(shareLink(sid))}">Salin tautan</button>
         <button class="btn ghost" data-sendlink="${esc(shareLink(sid))}">Kirim</button>
-      </div></div>` : `<div class="field" style="margin-top:12px">
-        <label>Nama yang ditampilkan saat berbagi</label>
-        <input id="f-author" value="${esc(store.author)}" placeholder="Wahyu"></div>`}
+      </div></div>` : ""}
   </div>`;
 }
 
@@ -1898,7 +2068,6 @@ function exploreView(){
       <p class="today">Resep yang dibagikan pengguna lain. Simpan yang cocok ke buku sendiri.</p></div>
     <div class="cta" style="margin:16px 0 20px"><button class="btn ghost" style="flex:1" data-refresh>Muat ulang</button></div>
     ${body}
-    <p class="foot">${e.items ? e.items.length + " resep dibagikan" : ""}</p>
   </div>`;
 }
 
@@ -1944,24 +2113,24 @@ async function openRemote(id){
 function saveCopy(r){
   const copy = JSON.parse(JSON.stringify(r));
   copy.id = "u" + Date.now().toString(36);
+  copy.updatedAt = Date.now();
   store.custom[copy.id] = copy;
-  store.deleted = store.deleted.filter(x => x !== copy.id);
+  delete store.tombs[copy.id];
   saveStore(); go("detail", copy.id);
 }
 
 async function toggleShare(id){
   const c = cloud(), r = byId(id);
-  if(!c.ready || !r) return;
+  if(!c.user || !r) return;
   const sid = store.shares[id];
   try{
     if(sid){
       await c.unpublish(sid);
       delete store.shares[id];
     }else{
-      const el = app.querySelector("#f-author");
-      if(el) store.author = el.value.trim();
-      store.shares[id] = await c.publish(r, store.author);
+      store.shares[id] = await c.publish(r);
     }
+    store.metaAt = Date.now();
     saveStore(); render();
   }catch(e){ alert("Gagal: " + (e.message || e)); }
 }
@@ -2069,7 +2238,6 @@ function editView(){
       ${!isNew && isCustom(d.id) ? '<button class="btn ghost" data-del>Hapus</button>' : ""}
       ${!isNew && !isCustom(d.id) && isEdited(d.id) ? '<button class="btn ghost" data-reset>Kembalikan asal</button>' : ""}
     </div>
-    <p class="foot">Tersimpan di perangkat ini lewat penyimpanan aplikasi.</p>
   </div>`;
 }
 function stepRow(s, i){
@@ -2176,7 +2344,6 @@ function bind(v){
   app.querySelectorAll("[data-new]").forEach(b => b.onclick = () => {
     state.draft = newRecipe(b.dataset.new); go("edit");
   });
-  if(v === "home") pwaStatus();
   if(v === "explore" && !state.explore.items && !state.explore.loading && !state.explore.err) loadExplore();
 
   app.querySelectorAll("[data-remote]").forEach(b => b.onclick = () => openRemote(b.dataset.remote));
@@ -2185,6 +2352,9 @@ function bind(v){
   const cp = app.querySelector("[data-copyto]");
   if(cp) cp.onclick = () => { const it = state.remote[cp.dataset.copyto]; if(it) saveCopy(it.data); };
   app.querySelectorAll("[data-share]").forEach(b => b.onclick = () => toggleShare(b.dataset.share));
+  app.querySelectorAll("[data-signin]").forEach(b => b.onclick = () => { b.textContent = "Membuka..."; cloud().signIn(); });
+  const so = app.querySelector("[data-signout]");
+  if(so) so.onclick = async () => { SYNC.watching = false; await cloud().signOut(); render(); };
   const ra = app.querySelector("[data-retryauth]");
   if(ra) ra.onclick = () => { ra.textContent = "Mencoba..."; if(cloud().retry) cloud().retry(); };
   const cl = app.querySelector("[data-copy]");
@@ -2212,11 +2382,11 @@ function bind(v){
     rd.onload = () => {
       try{
         const d = JSON.parse(rd.result);
-        Object.assign(store, {
-          custom: Object.assign({}, store.custom, d.custom || {}),
-          deleted: [...new Set((store.deleted||[]).concat(d.deleted || []))],
-          favs: [...new Set((store.favs||[]).concat(d.favs || []))]
-        });
+        const masuk = d.custom || {};
+        Object.values(masuk).forEach(r => { if(!r.updatedAt) r.updatedAt = Date.now(); });
+        store.custom = Object.assign({}, store.custom, masuk);
+        store.favs = [...new Set((store.favs || []).concat(d.favs || []))];
+        store.metaAt = Date.now();
         saveStore(); render();
       }catch(err){ alert("File cadangan tidak terbaca."); }
     };
@@ -2269,6 +2439,7 @@ function bind(v){
     const fav = app.querySelector("[data-fav]");
     if(fav) fav.onclick = () => {
       store.favs = store.favs.includes(r.id) ? store.favs.filter(x => x !== r.id) : store.favs.concat(r.id);
+      store.metaAt = Date.now();
       saveStore(); render();
     };
     const bw = app.querySelector("[data-brew]");
@@ -2311,8 +2482,9 @@ function bind(v){
       const d = collectDraft(), msg = validate(d);
       if(msg){ app.querySelector("#warn").innerHTML = `<p class="warn">${msg}</p>`; return; }
       if(!d.id) d.id = "u" + Date.now().toString(36);
+      d.updatedAt = Date.now();
       store.custom[d.id] = d;
-      store.deleted = store.deleted.filter(x => x !== d.id);
+      delete store.tombs[d.id];
       saveStore(); state.draft = null; state.scale[d.id] = undefined;
       go("detail", d.id);
     };
@@ -2320,7 +2492,7 @@ function bind(v){
     if(del) del.onclick = () => {
       const id = state.draft.id;
       delete store.custom[id];
-      if(!store.deleted.includes(id)) store.deleted.push(id);
+      store.tombs[id] = Date.now();
       saveStore(); state.draft = null; go("list");
     };
     const rst = app.querySelector("[data-reset]");
@@ -2414,7 +2586,6 @@ function openBrew(r){
       <span>Bip penanda tiap ${store.interval || 15} detik</span>
       <button class="sw ${store.interval ? "on" : ""}" id="bInt" aria-label="Bip berkala"><i></i></button>
     </div>
-    <p class="foot">Bip di tiap pergantian langkah, tik di 3 detik terakhir, dan nada panjang saat selesai.</p>
   </div></div>`;
 
   document.body.style.overflow = "hidden";
@@ -2588,8 +2759,9 @@ loadStore().then(() => {
   const rid = new URLSearchParams(location.search).get("r");
   if(rid) openRemote(rid);
 });
-window.addEventListener("cloud-change", () => {
-  if(state.view === "detail" || state.view === "explore") render();
+window.addEventListener("cloud-change", e => {
+  if(e.detail === "auth" && cloud().ready){ SYNC.watching = false; syncNow(); }
+  render();
 });
 
 /* =========================================================
@@ -2624,22 +2796,4 @@ if("serviceWorker" in navigator){
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 
-/* Cek syarat pemasangan, supaya kelihatan file mana yang belum terunggah */
-async function pwaStatus(){
-  const el = document.getElementById("pwastat"); if(!el) return;
-  const out = [];
-  const secure = location.protocol === "https:" || location.hostname === "localhost";
-  out.push(secure ? "HTTPS ok" : "butuh HTTPS");
-  try{ const r = await fetch("manifest.webmanifest", {cache:"no-store"}); out.push(r.ok ? "manifest ok" : "manifest " + r.status); }
-  catch(e){ out.push("manifest gagal"); }
-  try{ const r = await fetch("icon-192.png", {cache:"no-store"}); out.push(r.ok ? "ikon ok" : "ikon " + r.status); }
-  catch(e){ out.push("ikon gagal"); }
-  try{ const r = await fetch("sw.js", {cache:"no-store"}); out.push(r.ok ? "sw ok" : "sw " + r.status); }
-  catch(e){ out.push("sw gagal"); }
-  if("serviceWorker" in navigator){
-    const regs = await navigator.serviceWorker.getRegistrations();
-    out.push(regs.length ? "service worker jalan" : "service worker belum jalan");
-  }
-  el.textContent = "Status pemasangan — " + out.join(", ");
-}
 </script>

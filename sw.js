@@ -1,6 +1,6 @@
 /* Buku Resep Seduh — service worker
    Naikkan VERSION setiap kali index.html diubah. */
-const VERSION = "resep-seduh-v8";
+const VERSION = "resep-seduh-v9";
 const CACHE = VERSION;
 
 const ASSETS = [
