@@ -1,0 +1,1503 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Buku Resep Seduh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<style>
+  :root{
+    --paper:#F2EDE1;
+    --card:#FCF8F0;
+    --sand:#EADFC9;
+    --line:#D6CBB4;
+    --ink:#23271E;
+    --muted:#5F5B4E;
+    --faint:#77705F;
+    --green:#2F3B26;
+    --green-2:#41502F;
+    --blue:#2C4A63;
+    --red:#C24B32;
+    --gold:#E0A93E;
+    --coffee:#8A5326;
+    --serif:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;padding-bottom:96px;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px}
+  h1,h2,h3,h4{margin:0;font-weight:600}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{background:none;border:0;cursor:pointer;color:inherit}
+  input,select,textarea{
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;
+  }
+  textarea{resize:vertical;min-height:70px}
+  :focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .serif{font-family:var(--serif)}
+
+  /* ---------- top ---------- */
+  .top{padding:22px 0 6px}
+  .hello{font-family:var(--serif);font-size:30px;line-height:1.12;font-weight:500;letter-spacing:-.01em}
+  .today{color:var(--muted);font-size:13px;margin-top:4px}
+
+  /* ---------- bento ---------- */
+  .bento{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
+  .tile{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;padding:15px;
+    text-align:left;display:block;position:relative;overflow:hidden;
+  }
+  .tile:active{transform:scale(.99)}
+  .span2{grid-column:span 2}
+  .tile.green{background:var(--green);border-color:var(--green);color:#F2EDE1}
+  .tile.blue{background:var(--blue);border-color:var(--blue);color:#EEF3F6}
+  .tile.red{background:var(--red);border-color:var(--red);color:#FDF1EC}
+  .tile.gold{background:var(--gold);border-color:var(--gold);color:#3B2A08}
+  .tile.sand{background:var(--sand);border-color:#DCCFB4}
+  .t-lbl{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.82}
+  .t-num{display:block;font-family:var(--serif);font-size:34px;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+  .t-sub{display:block;font-size:12.5px;opacity:.88;margin-top:5px}
+  .hero{display:flex;gap:12px;align-items:center;padding:16px}
+  .hero .hero-txt{flex:1;min-width:0}
+  .hero h2{font-family:var(--serif);font-size:23px;font-weight:500;margin-top:7px;line-height:1.15;letter-spacing:-.01em}
+  .hero .go{
+    display:inline-flex;align-items:center;gap:7px;margin-top:12px;background:rgba(255,255,255,.16);
+    border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600
+  }
+  .hero svg{flex:none}
+  .mini-row{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .mini-row::-webkit-scrollbar{display:none}
+  .mini{
+    flex:none;width:142px;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:11px 12px;text-align:left
+  }
+  .mini .mart{display:block;margin-bottom:6px}
+  .mini b{display:block;font-family:var(--serif);font-size:15px;font-weight:500;line-height:1.2}
+  .mini span{display:block;color:var(--muted);font-size:11.5px;margin-top:4px}
+  .sec-h{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
+  .sec-h h3{font-family:var(--serif);font-size:18px;font-weight:500}
+  .sec-h button{color:var(--muted);font-size:13px}
+
+  /* ---------- list ---------- */
+  .search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-top:14px}
+  .search input{border:0;padding:0;background:none}
+  .chips{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding:12px 0 2px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:13.5px;color:var(--muted)}
+  .chip[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#F2EDE1;font-weight:600}
+
+  .row{
+    display:flex;gap:13px;align-items:center;width:100%;text-align:left;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;padding:13px 14px;margin-bottom:10px
+  }
+  .row .ic{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;flex:none;background:var(--sand);overflow:hidden}
+  .row .ic svg{display:block}
+  .artprev{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;place-items:center;margin-top:9px}
+  .row .ic.green{background:var(--green);color:#F2EDE1}
+  .row .ic.blue{background:var(--blue);color:#EEF3F6}
+  .row .ic.red{background:var(--red);color:#FDF1EC}
+  .row .ic.gold{background:var(--gold);color:#3B2A08}
+  .row .bd{flex:1;min-width:0}
+  .row b{display:block;font-family:var(--serif);font-size:16.5px;font-weight:500}
+  .row span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+  .row .star{color:var(--gold);flex:none;font-size:13px}
+  .empty{color:var(--muted);text-align:center;padding:34px 10px;font-size:14px}
+
+  /* ---------- detail ---------- */
+  .bar{display:flex;align-items:center;gap:10px;padding:16px 0 4px}
+  .bar .sp{flex:1}
+  .lnk{color:var(--muted);font-size:14px;display:inline-flex;align-items:center;gap:6px}
+  .head{background:var(--green);color:#F2EDE1;border-radius:22px;padding:18px;margin-top:6px;position:relative;overflow:hidden;min-height:136px;display:flex;flex-direction:column;justify-content:center}
+  .head.blue{background:var(--blue)} .head.red{background:var(--red)} .head.gold{background:var(--gold);color:#3B2A08}
+  .head .kind{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+  .head h2{font-family:var(--serif);font-size:27px;font-weight:500;margin-top:6px;line-height:1.12;max-width:68%;letter-spacing:-.01em}
+  .head .flavor{font-family:var(--serif);font-style:italic;font-size:14.5px;opacity:.85;margin-top:8px;max-width:74%}
+  .head .art{position:absolute;right:14px;bottom:-2px;opacity:.97}
+  .specs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}
+  .spec{background:var(--card);padding:11px 8px;text-align:center}
+  .spec i{display:block;color:var(--muted);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;font-style:normal}
+  .spec b{display:block;font-family:var(--serif);font-size:15px;font-weight:500;margin-top:4px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-top:12px}
+  .dose{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .dose-v{font-family:var(--serif);font-size:29px;font-variant-numeric:tabular-nums}
+  .dose-v small{font-size:13.5px;color:var(--muted);font-family:var(--sans);margin-left:4px}
+  .stepper{display:flex;gap:8px}
+  .stepper button{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);background:#fff;font-size:20px;display:grid;place-items:center}
+  .yields{display:flex;gap:20px;flex-wrap:wrap;margin-top:13px;padding-top:13px;border-top:1px solid var(--line)}
+  .yields b{display:block;font-family:var(--serif);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+  .yields span{color:var(--muted);font-size:12px}
+
+  /* arkana-style timeline */
+  .tl{position:relative;margin-top:14px}
+  .tl-item{display:flex;gap:13px;position:relative;padding-bottom:16px}
+  .tl-item:last-child{padding-bottom:0}
+  .tl-item .badge{
+    box-shadow:none;
+    width:52px;height:52px;border-radius:50%;flex:none;display:grid;place-items:center;
+    background:var(--green);color:#F2EDE1;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;
+    border:2px solid var(--green);z-index:1;transition:transform .3s,background .3s,box-shadow .3s
+  }
+  .tl-item.b .badge{background:var(--blue);border-color:var(--blue)}
+  .tl-item.ghost .badge{background:transparent;color:var(--green);border-style:solid}
+  .tl-item:not(:last-child)::before{
+    content:"";position:absolute;left:25px;top:52px;bottom:2px;width:2px;
+    background:repeating-linear-gradient(#BCAE8F 0 5px,transparent 5px 10px)
+  }
+  .tl-bd{flex:1;min-width:0;padding-top:5px}
+  .tl-bd b{font-size:15px}
+  .tl-bd .amt{font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums;float:right}
+  .tl-bd p{margin:3px 0 0;color:var(--muted);font-size:13px}
+
+  .pchip{
+    display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:5px 12px 5px 8px;
+    border-radius:999px;background:#E3D7BC;color:var(--green);font-size:13px;font-weight:600;
+    border:1px solid #CBBB98
+  }
+  .pchip svg{width:17px;height:17px;flex:none}
+  .pchip.on{background:#F6F1E4;color:#2A3422;border-color:#F6F1E4;font-size:14px;padding:7px 15px 7px 10px}
+  .pchip.on svg{width:19px;height:19px}
+  .pouring .pchip.sp svg,.stage.pour .pchip.sp svg{animation:spin 2.6s linear infinite}
+  @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.pchip.sp svg{animation:none}}
+  .tip{background:var(--green);color:#EFEADF;border-radius:18px;padding:15px;margin-top:12px}
+  .tip.blue{background:var(--blue)}
+  .tip h4{font-size:14px;display:flex;align-items:center;gap:8px}
+  .tip p{margin:7px 0 0;font-size:13.5px;opacity:.96}
+  .ing{list-style:none;padding:0;margin:0}
+  .ing li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .ing li:last-child{border-bottom:0}
+  .ing em{display:block;font-style:normal;color:var(--muted);font-size:12.5px;margin-top:1px}
+  .ing .a{font-family:var(--serif);font-size:16.5px;font-variant-numeric:tabular-nums;flex:none}
+  .sub{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:16px 0 5px}
+  .cta{display:flex;gap:10px;margin-top:14px}
+  .btn{
+    flex:1;padding:15px;border-radius:15px;background:var(--green);color:#F2EDE1;font-weight:600;
+    display:flex;align-items:center;justify-content:center;gap:9px;font-size:15px
+  }
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink);flex:0 0 auto;padding:15px 18px}
+  .btn.red{background:var(--red);color:#fff}
+  .note-out{display:flex;gap:22px;flex-wrap:wrap;margin-top:12px}
+  .note-out b{display:block;font-family:var(--serif);font-size:22px;color:var(--green);font-variant-numeric:tabular-nums}
+  .note-out span{color:var(--muted);font-size:12.5px}
+
+  /* ---------- editor ---------- */
+  .field{margin-top:13px}
+  .field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px}
+  .ed-row label{display:block;font-size:11.5px;color:var(--faint);margin-bottom:4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .ed-row{background:#fff;border:1px solid var(--line);border-radius:15px;padding:11px;margin-top:9px}
+  .ed-row .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+  .ed-row .hd b{font-size:13.5px}
+  .del{color:var(--red);font-size:12.5px}
+  .add{width:100%;padding:12px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);margin-top:10px;background:#fff}
+  .warn{color:var(--red);font-size:13px;margin-top:10px}
+
+  /* ---------- nav ---------- */
+  .nav{
+    position:fixed;left:0;right:0;bottom:0;z-index:15;background:rgba(242,237,225,.94);
+    backdrop-filter:blur(8px);border-top:1px solid var(--line)
+  }
+  .nav-in{max-width:560px;margin:0 auto;display:flex;padding:9px 14px calc(9px + env(safe-area-inset-bottom))}
+  .nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--faint);font-size:11px;padding:5px 0}
+  .nav button[aria-current="true"]{color:var(--green);font-weight:600}
+  .nav .fab{flex:none;width:52px;height:44px;background:var(--red);color:#fff;border-radius:14px;justify-content:center;margin-left:6px}
+
+  /* ---------- brew mode ---------- */
+  .brew{position:fixed;inset:0;z-index:30;background:var(--paper);overflow-y:auto}
+  .brew-in{max-width:560px;margin:0 auto;padding:16px 16px 30px}
+  .brew-bar{display:flex;align-items:center;gap:10px}
+  .brew-bar .nm{flex:1;text-align:right;color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .snd{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;flex:none}
+  .snd.off{opacity:.45}
+  .stage{display:flex;align-items:center;gap:8px;background:var(--green);color:#F2EDE1;border-radius:22px;padding:18px;margin-top:10px;transition:background .4s}
+  .stage.pour{background:var(--red)}
+  .stage.done{background:var(--blue)}
+  .stage .txt{flex:1;min-width:0}
+  .stage .ph{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.92;min-height:16px}
+  .stage .big{display:block;font-family:var(--serif);font-size:56px;line-height:1;font-variant-numeric:tabular-nums;margin-top:4px}
+  .stage .big small{font-size:19px;opacity:.75}
+  .stage .cap{display:block;font-size:13.5px;opacity:.95;margin-top:8px;min-height:36px}
+  .clockrow{display:flex;justify-content:space-between;align-items:baseline;padding:12px 2px;border-bottom:1px solid var(--line)}
+  .clockrow b{font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums}
+  .clockrow span{color:var(--muted);font-size:13px}
+  .btl{position:relative;margin-top:16px}
+  .btl-i{display:flex;gap:13px;position:relative;padding-bottom:18px;opacity:.72;transition:opacity .35s}
+  .btl-i.on,.btl-i.past{opacity:1}
+  .btl-i:not(:last-child)::before{content:"";position:absolute;left:25px;top:54px;bottom:0;width:2px;background:#C6BA9E}
+  .btl-i .fill{position:absolute;left:25px;top:54px;width:2px;height:0;background:var(--green);transition:height .25s linear}
+  .btl-i .badge{
+    width:52px;height:52px;border-radius:50%;flex:none;display:grid;place-items:center;background:#fff;
+    border:2px solid #C6BA9E;color:var(--ink);font-family:var(--serif);font-size:15.5px;
+    font-variant-numeric:tabular-nums;z-index:1;transition:background .3s,color .3s,border-color .3s,box-shadow .3s
+  }
+  .btl-i.past .badge{border-color:var(--green);color:var(--green)}
+  .btl-i.on .badge{background:var(--green);border-color:var(--green);color:#F2EDE1;box-shadow:0 0 0 6px rgba(47,59,38,.12)}
+  .btl-bd{flex:1;min-width:0;padding-top:4px}
+  .btl-bd b{font-size:15px}
+  .btl-bd .amt{float:right;font-family:var(--serif);font-size:16px;font-variant-numeric:tabular-nums}
+  .btl-bd p{margin:3px 0 0;color:var(--muted);font-size:13px}
+  .brew-ctl{display:flex;gap:10px;margin-top:8px}
+  .brew-ctl button{flex:1;padding:15px;border-radius:15px;font-weight:600;font-size:15px;background:var(--green);color:#F2EDE1}
+  .brew-ctl .g{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .brew-ctl button[disabled]{opacity:.5}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;color:var(--muted);font-size:13px}
+  .sw{width:46px;height:27px;border-radius:99px;background:#C6BA9E;position:relative;transition:background .25s;flex:none}
+  .sw i{position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .sw.on{background:var(--green)} .sw.on i{transform:translateX(19px)}
+  .rig{width:104px;height:150px;flex:none}
+  #liquid{transition:transform 1s cubic-bezier(.4,0,.2,1)}
+  .drop{fill:#F1EADA;opacity:0;animation:fall 2.6s linear infinite}
+  .d2{animation-delay:.9s}.d3{animation-delay:1.8s}
+  .pouring .drop{animation-duration:.5s}
+  .pouring .d2{animation-delay:.17s}.pouring .d3{animation-delay:.34s}
+  .stream{opacity:0;transition:opacity .25s}
+  .pouring .stream{opacity:.95}
+  @keyframes fall{0%{transform:translateY(0);opacity:0}18%{opacity:1}100%{transform:translateY(22px);opacity:0}}
+  @keyframes drift{from{transform:translateX(0)}to{transform:translateX(90px)}}
+  .waveG{animation:drift 3.2s linear infinite}
+  .foot{color:var(--muted);font-size:12px;text-align:center;padding:24px 0 6px}
+  @media (prefers-reduced-motion:reduce){.drop,.waveG{animation:none}#liquid{transition:none}}
+</style>
+
+<div id="app"></div>
+<div id="ov"></div>
+
+<script>
+/* =========================================================
+   1. DATA
+   ========================================================= */
+const DEFAULTS = [
+/* ---------- seduh: arkana ---------- */
+{id:"arkana-hot", art:"switch", kind:"brew", cat:"panas", tone:"green", name:"Arkana Hario Switch — Hot", stars:3,
+ dose:10, dripper:"Hario Switch", temp:"92°C", grind:"FM 10.5",
+ flavor:"Clean, sweet & balanced",
+ steps:[
+   {n:"Buka switch, mulai timer", at:45, pour:60, note:"biarkan terendam sampai switch ditutup"},
+   {n:"Tutup switch", at:105, pour:120, note:"kecepatan tuang ±11 g/detik"}
+ ],
+ finishLabel:"Swirl & buka switch", finishPs:"stir",
+ finishNote:"Swirl lembut lalu buka switch sampai kopi tuntas turun",
+ tips:"Swirl lembut untuk meratakan ekstraksi, lalu buka switch agar kopi tuntas turun. Cocok untuk kopi light–medium roast."},
+{id:"arkana-ice", art:"switchice", kind:"brew", cat:"dingin", tone:"blue", name:"Arkana Hario Switch — Ice", stars:3,
+ dose:10, dripper:"Hario Switch", temp:"92°C", grind:"FM 9", ice:85,
+ flavor:"Clean, sweet & balanced",
+ steps:[
+   {n:"Buka switch, mulai timer", at:45, pour:40, note:"server sudah berisi es"},
+   {n:"Tutup switch", at:105, pour:80, note:"kecepatan tuang ±8 g/detik"}
+ ],
+ finishLabel:"Swirl & buka switch", finishPs:"stir",
+ finishNote:"Swirl lembut lalu buka switch sampai kopi tuntas turun",
+ tips:"Es 85 g + total air 120 g menghasilkan rasa seimbang dan tetap clean."},
+
+/* ---------- seduh: v60 ---------- */
+{id:"v60", kind:"brew", cat:"panas", tone:"green", name:"V60 Classic", dose:16, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:40, pour:45, note:"3 × berat kopi, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:90, pour:90, note:"2 × bloom, fast 3 set", ps:"circle"},
+  {n:"Tuang", at:120, pour:45, note:"3 × berat kopi, fast 1 set", ps:"circle"},
+  {n:"Tuang", at:160, pour:60, note:"sisa air, slow 1 set low", ps:"circle"}
+ ]},
+{id:"v60imm", kind:"brew", cat:"panas", tone:"green", name:"V60 Immersion + Dripper Assist", stars:2,
+ dose:15, dripper:"V60 + dripper assist", drawdown:150,
+ steps:[
+  {n:"Bloom", at:40, pour:40, note:"buka valve, rasio 1:2,67"},
+  {n:"Tutup valve", at:80, pour:80, note:"rasio 1:8"},
+  {n:"Tuang", at:120, pour:100, note:"sisa air, rasio 1:15"}
+ ],
+ tips:"Total brew time 2:30. Kalau air belum turun habis, kasarkan gilingan sedikit."},
+{id:"v60fw", kind:"brew", cat:"panas", tone:"green", name:"V60 Full Wash", stars:1, dose:12, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:60, pour:50, note:"fast 2 set", ps:"circle"},
+  {n:"Tuang", at:100, pour:90, note:"fast 3 set", ps:"circle"},
+  {n:"Tuang", at:150, pour:60, note:"sisa air, tuang di tengah", ps:"center"}
+ ]},
+{id:"v60v2", kind:"brew", cat:"panas", tone:"green", name:"V60 v2", stars:3, dose:15, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:40, pour:40, note:"rasio 1:2,67, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:90, pour:80, note:"rasio 1:8, fast 3 set", ps:"circle"},
+  {n:"Tuang", at:150, pour:100, note:"sisa air, slow 1 set low", ps:"circle"}
+ ]},
+{id:"v60v5", kind:"brew", cat:"panas", tone:"green", name:"V60 v5", stars:3, dose:15, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:40, pour:40, note:"rasio 1:2,67, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:90, pour:80, note:"rasio 1:8, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:135, pour:50, note:"setengah sisa air, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:180, pour:50, note:"sisa air, slow 1 set center", ps:"center"}
+ ]},
+
+/* ---------- seduh: ice japanese ---------- */
+{id:"ij", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese", dose:15, ice:90, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:30, pour:30, note:"2 × berat kopi, fast 1 set", ps:"circle"},
+  {n:"Tuang", at:80, pour:60, note:"2 × bloom, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:110, pour:30, note:"setengah sisa air, fast 1 set", ps:"circle"},
+  {n:"Tuang", at:150, pour:30, note:"sisa air, slow 1 set low", ps:"circle"}
+ ]},
+{id:"ijv2", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v2 — Cafe Au Lait", dose:10, ice:70,
+ iceText:"60 – 75 g", dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:30, pour:30, note:"3 × berat kopi, fast 1 set, aduk ringan", ps:"circle"},
+  {n:"Tuang", at:60, pour:40, note:"fast 2 set", ps:"circle"},
+  {n:"Tuang", at:90, pour:30, note:"3 × berat kopi, slow 1 set low, aduk memutar", ps:"circle"}
+ ]},
+{id:"ijv3", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v3", dose:15, ice:90, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:30, pour:30, note:"2 × berat kopi, fast 1 set, aduk ringan", ps:"circle"},
+  {n:"Tuang", at:60, pour:60, note:"2 × bloom, fast 2 set", ps:"circle"},
+  {n:"Tuang", at:90, pour:60, note:"sisa air, slow 1 set low, aduk memutar", ps:"circle"}
+ ]},
+{id:"ijv5", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v5", stars:3, dose:15, ice:90, dripper:"Hario V60",
+ steps:[
+  {n:"Bloom", at:40, pour:50, note:"fast 1 set, aduk ringan", ps:"circle"},
+  {n:"Tuang", at:80, pour:50, note:"fast 2 set", ps:"circle"},
+  {n:"Tuang", at:130, pour:50, note:"sisa air, slow 1 set low, aduk memutar", ps:"circle"}
+ ]},
+
+/* ---------- racikan: cold brew ---------- */
+{id:"summer", kind:"mix", cat:"coldbrew", tone:"gold", name:"Summer Fling", unit:"gelas",
+ ing:[{nm:"Cold brew",a:100},{nm:"Pineapple syrup",a:13},{nm:"Perasan lemon",a:5},
+      {nm:"Vanilla syrup",a:4},{nm:"Mint syrup",a:8,alt:"atau lemon syrup 8 g"}],
+ addon:[{nm:"Tonic water",a:50}]},
+{id:"redflower", kind:"mix", cat:"coldbrew", tone:"red", name:"Red Flower", unit:"gelas",
+ ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Strawberry jam",a:9,alt:"8 – 10 g"},
+      {nm:"Flower syrup",a:2},{nm:"Lemon syrup",a:8}],
+ addon:[{nm:"Tonic water",a:50}]},
+{id:"strawmint", kind:"mix", cat:"coldbrew", tone:"red", name:"Strawberry Mint", unit:"gelas",
+ ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Perasan lemon",a:5},
+      {nm:"Vanilla syrup",a:4},{nm:"Mint syrup",a:8}],
+ addon:[{nm:"Tonic water",a:50}]},
+{id:"strawdried", kind:"mix", cat:"coldbrew", tone:"red", name:"Straw Dried Orange", unit:"gelas",
+ ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Perasan lemon",a:5},
+      {nm:"Dried orange syrup",a:4},{nm:"Vanilla syrup",a:8}],
+ addon:[{nm:"Tonic water",a:50}]},
+
+/* ---------- racikan: es kopi susu ---------- */
+{id:"gulana", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Gulana", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 36 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
+      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1,25",a:30},{nm:"Vanilla syrup",a:20}]},
+{id:"carmila", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Carmila", stars:2, unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
+      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},{nm:"Vanilla syrup",a:10},
+      {nm:"Caramel syrup",a:5},{nm:"SKM",a:5}]},
+{id:"bumi", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Bumi", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
+      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},{nm:"Butterscotch syrup",a:10,alt:"9 – 10 g"},
+      {nm:"Caramel syrup",a:10,alt:"9 – 10 g"}]},
+{id:"tetangga", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Tetangga", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:80},
+      {nm:"Creamer 1:1",a:30},{nm:"Evaporated milk",a:20},
+      {nm:"Gula aren syrup",a:20,alt:"atau 15 g gula aren + 5 g SKM"}]},
+{id:"luar", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Luar", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:60},
+      {nm:"Oat milk",a:30},{nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},
+      {nm:"Gula aren syrup",a:20,alt:"atau 10 g gula aren + 5 g vanilla + 5 g SKM"}]},
+{id:"kopistraw", art:"latte", kind:"mix", cat:"susu", tone:"red", name:"Es Kopi Strawberry", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:110},
+      {nm:"SKM",a:10},{nm:"Creamer 1:1",a:20},{nm:"Strawberry syrup",a:19,alt:"18 – 20 g"}]},
+{id:"spanish", kind:"mix", cat:"susu", tone:"gold", name:"Es Spanish Latte", unit:"gelas",
+ ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:100},
+      {nm:"Creamer",a:20},{nm:"SKM",a:24,alt:"18 – 30 g"}]},
+
+/* ---------- racikan: teh, mojito, sirup ---------- */
+{id:"tehgelas", art:"teh", kind:"mix", cat:"teh", tone:"green", name:"Teh Tarik per Gelas", unit:"gelas",
+ ing:[{nm:"Konsentrat teh",a:200},{nm:"Susu",a:45,alt:"rasio 1:4,5 dari teh"},
+      {nm:"Creamer",a:15,alt:"rasio 1:15 dari teh"}],
+ note:"Konsentrat teh diseduh dengan rasio bubuk teh : air = 1:15 sampai 1:20."},
+{id:"tehliter", art:"teapot", kind:"mix", cat:"teh", tone:"green", name:"Teh Tarik 1 Liter", unit:"batch",
+ ing:[{nm:"Bubuk teh",a:100,alt:"80 – 120 g"},{nm:"Creamer",a:80},{nm:"Susu",a:270},{nm:"Air",a:1200}]},
+{id:"mojito", art:"mojito", kind:"mix", cat:"teh", tone:"green", name:"Strawberry Mojito", unit:"gelas",
+ ing:[{nm:"Tonic water",a:150},{nm:"Strawberry syrup",a:10},{nm:"Mint syrup",a:5},
+      {nm:"Lemon syrup",a:10},{nm:"Perasan lemon",a:5}]},
+{id:"strawsyrup", art:"pan", kind:"mix", cat:"sirup", tone:"red", name:"Strawberry Syrup", unit:"batch",
+ ing:[{nm:"Strawberry",a:300},{nm:"Gula",a:100},{nm:"Vanilla",a:10},{nm:"Perasan lemon",a:5}],
+ note:"Masak 5 – 10 menit."},
+{id:"caramelsyrup", art:"bottle", kind:"mix", cat:"sirup", tone:"gold", name:"Caramel Syrup", unit:"batch",
+ ing:[{nm:"Gula",a:200},{nm:"Air",a:200},{nm:"Vanilla syrup",a:40}]},
+{id:"caramelsauce", art:"pan", kind:"mix", cat:"sirup", tone:"gold", name:"Caramel Sauce", unit:"batch",
+ ing:[{nm:"Gula",a:200},{nm:"Air",a:70},{nm:"Cream",a:150},{nm:"Butter",a:50},{nm:"Vanilla syrup",a:40}]},
+
+/* ---------- catatan ---------- */
+{id:"n-coldbrew", kind:"note", tone:"blue", name:"Konsentrat Cold Brew", basis:"kopi", def:100,
+ ratios:[{lb:"Air, rasio 1:8",v:8},{lb:"Air, rasio 1:9",v:9}],
+ note:"Rendam, saring, simpan di kulkas. Dipakai 100 g per gelas racikan cold brew."},
+{id:"n-espresso", art:"espresso", kind:"note", tone:"green", name:"Konsentrat Espresso", basis:"kopi", def:18,
+ ratios:[{lb:"Air, rasio 1:2",v:2}],
+ note:"Setara double shot untuk seri es kopi susu."},
+{id:"n-creamer", art:"bottle", kind:"note", tone:"gold", name:"Larutan Creamer", basis:"bubuk creamer", def:100,
+ ratios:[{lb:"Air, rasio 1:1",v:1},{lb:"Air, rasio 1:1,25",v:1.25}]},
+{id:"n-teh", art:"teapot", kind:"note", tone:"green", name:"Konsentrat Teh", basis:"bubuk teh", def:80,
+ ratios:[{lb:"Air, rasio 1:15",v:15},{lb:"Air, rasio 1:20",v:20}]}
+];
+
+
+/* jenis tuangan */
+const POURS = {
+  center:  {lb:"Center pour",   desc:"tuang tegak di tengah bed", spin:false,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="12" cy="12" r="8.5" opacity=".6"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 2v5" stroke-linecap="round"/></svg>'},
+  circle:  {lb:"Circular pour", desc:"putar rata di zona tengah", spin:true,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="6.6" stroke-dasharray="3.6 2.8"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>'},
+  spiral:  {lb:"Spiral out",    desc:"melingkar dari tengah ke pinggir", spin:true,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 12c0-1 .8-1.8 1.8-1.8s1.9.9 1.9 2.1-1.4 3.5-3.7 3.5-5.4-2-5.4-4.8S9 6 12.2 6s5.6 2.6 5.9 5.4"/></svg>'},
+  rim:     {lb:"Rinse dinding", desc:"susur dinding untuk turunkan bubuk", spin:true,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.6" opacity=".55" stroke-dasharray="2 3"/></svg>'},
+  pulse:   {lb:"Pulse",         desc:"tuang bertahap sedikit-sedikit", spin:false,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v3M12 9.5v3M12 16v3"/><circle cx="12" cy="12" r="8.5" opacity=".55"/></svg>'},
+  stir:    {lb:"Swirl / aduk",  desc:"tanpa tuang, ratakan bed", spin:true,
+    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18.5 12a6.5 6.5 0 1 1-2.4-5"/><path d="M18.6 3.6V7h-3.4"/></svg>'}
+};
+const pourOf = st => POURS[st && st.ps] || null;
+function pourChip(st, cls){
+  const p = pourOf(st); if(!p) return "";
+  return `<span class="pchip ${cls||""} ${p.spin?"sp":""}">${p.ic}${p.lb}</span>`;
+}
+
+const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
+              coldbrew:"Cold brew", teh:"Teh & mojito", sirup:"Sirup"};
+
+/* =========================================================
+   2. STORE
+   ========================================================= */
+const store = { custom:{}, deleted:[], favs:[], sound:true, interval:0, last:null };
+let dirty = false;
+
+async function loadStore(){
+  try{
+    const r = await window.storage.get("resep:v2");
+    if(r && r.value) Object.assign(store, JSON.parse(r.value));
+  }catch(e){}
+  render();
+}
+async function saveStore(){
+  try{ await window.storage.set("resep:v2", JSON.stringify(store)); }
+  catch(e){ dirty = true; }
+}
+
+function recipes(){
+  const del = new Set(store.deleted);
+  const base = DEFAULTS.filter(r => !del.has(r.id))
+                       .map(r => store.custom[r.id] ? store.custom[r.id] : r);
+  const extra = Object.values(store.custom).filter(r => !DEFAULTS.some(d => d.id === r.id) && !del.has(r.id));
+  return base.concat(extra);
+}
+const byId = id => recipes().find(r => r.id === id);
+const isEdited = id => !!store.custom[id];
+const isCustom = id => !DEFAULTS.some(d => d.id === id);
+
+/* =========================================================
+   3. HELPERS
+   ========================================================= */
+const fmt = n => {
+  const r = Math.round(n * 10) / 10;
+  return (Math.abs(r - Math.round(r)) < 0.05 ? Math.round(r) : r).toString().replace(".", ",");
+};
+const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0"); };
+const parseTime = t => {
+  if(t == null) return 0;
+  const p = String(t).trim().split(":");
+  return p.length > 1 ? (parseInt(p[0]||0) * 60 + parseFloat(p[1]||0)) : parseFloat(p[0]||0);
+};
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const cums = r => { let c = 0; return r.steps.map(s => c += (+s.pour || 0)); };
+const waterOf = r => cums(r).slice(-1)[0] || 0;
+const totalTime = r => Math.max(r.drawdown || 0, r.steps.length ? r.steps[r.steps.length-1].at : 0);
+const kindName = k => k === "brew" ? "Resep seduh" : k === "mix" ? "Racikan" : "Catatan";
+
+/* =========================================================
+   4. SOUND
+   ========================================================= */
+let ac = null;
+function tone(freq, dur, type, vol, delay){
+  if(!store.sound) return;
+  try{
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    if(ac.state === "suspended") ac.resume();
+    const t0 = ac.currentTime + (delay || 0);
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || "sine"; o.frequency.setValueAtTime(freq, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol || .18, t0 + .015);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(ac.destination);
+    o.start(t0); o.stop(t0 + dur + .05);
+  }catch(e){}
+}
+const sTick     = () => tone(1180, .05, "square", .07);        // hitung mundur tiap detik
+const sInterval = () => tone(760, .07, "triangle", .10);       // penanda tiap N detik
+const sStep     = () => { tone(880, .14, "sine", .22); tone(1320, .18, "sine", .18, .12); };
+const sDone     = () => { [660, 880, 1174].forEach((f,i) => tone(f, .38, "sine", .22, i * .17)); };
+
+/* =========================================================
+   5. STATE + ROUTER
+   ========================================================= */
+const state = { view:"home", q:"", cat:"all", id:null, scale:{}, draft:null };
+const app = document.getElementById("app");
+const ovRoot = document.getElementById("ov");
+
+function go(view, id){
+  state.view = view; if(id !== undefined) state.id = id;
+  window.scrollTo(0, 0); render();
+}
+function render(){
+  const y = window.scrollY;
+  const v = state.view;
+  app.innerHTML = v === "home" ? homeView()
+    : v === "list" ? listView()
+    : v === "notes" ? notesView()
+    : v === "detail" ? detailView()
+    : v === "edit" ? editView() : homeView();
+  app.innerHTML += navHTML(v);
+  bind(v);
+  if(v === "detail" || v === "edit") window.scrollTo(0, y);
+}
+
+/* =========================================================
+   6. ART
+   ========================================================= */
+const PAL = {
+  coffee:"#A96A24", dark:"#5E3A17", milk:"#F0E2C8", ice:"#A9CBE0",
+  mint:"#8CB87A", berry:"#CE5646", tea:"#CE8B3D", cream:"#F1EADA", sugar:"#E5C56B"
+};
+const ART = {
+  /* --- seduh panas: V60 --- */
+  v60: L => `
+    <path d="M14 14 H86 L54 60 H46 Z" fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3.4"/>
+    <path d="M24 24 H76 L54 54 H46 Z" fill="${PAL.dark}" opacity=".85"/>
+    <path d="M50 15 V58 M30 15 L44 58 M70 15 L56 58" stroke="${L}" stroke-width="1.3" opacity=".55"/>
+    <path d="M50 63 v6" stroke="${L}" stroke-width="3" />
+    <path d="M26 74 H74 V101 Q74 109 66 109 H34 Q26 109 26 101 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M74 82 q11 7 0 14" stroke="${L}" stroke-width="3.4"/>
+    <path d="M22 73 H78" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- Hario Switch: ada klem + tuas --- */
+  switch: L => `
+    <path d="M14 14 H86 L54 58 H46 Z" fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3.4"/>
+    <path d="M24 23 H76 L54 52 H46 Z" fill="${PAL.dark}" opacity=".85"/>
+    <rect x="36" y="50" width="28" height="15" rx="4" fill="${L}"/>
+    <circle cx="50" cy="57.5" r="3.6" fill="${PAL.dark}"/>
+    <path d="M64 53 h9" stroke="${L}" stroke-width="4"/>
+    <path d="M26 76 H74 V102 Q74 110 66 110 H34 Q26 110 26 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M74 84 q11 7 0 14" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- Switch di atas es --- */
+  switchice: L => `
+    <path d="M18 10 H82 L54 48 H46 Z" fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3.4"/>
+    <rect x="38" y="41" width="24" height="13" rx="4" fill="${L}"/>
+    <path d="M50 58 v5" stroke="${L}" stroke-width="3"/>
+    <path d="M28 68 H72 L68 111 Q67.6 115 63 115 H37 Q32.4 115 32 111 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <rect x="38" y="76" width="14" height="14" rx="3" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>
+    <rect x="52" y="90" width="13" height="13" rx="3" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>`,
+  /* --- ice japanese: dripper di atas gelas es --- */
+  icedrip: L => `
+    <path d="M18 10 H82 L54 50 H46 Z" fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3.4"/>
+    <path d="M27 18 H73 L54 45 H46 Z" fill="${PAL.dark}" opacity=".8"/>
+    <path d="M50 54 v6" stroke="${L}" stroke-width="3"/>
+    <path d="M28 66 H72 L68 111 Q67.6 115 63 115 H37 Q32.4 115 32 111 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <rect x="37" y="74" width="15" height="15" rx="3.5" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>
+    <rect x="51" y="88" width="14" height="14" rx="3.5" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>`,
+  /* --- es kopi susu berlapis --- */
+  latte: L => `
+    <path d="M30 22 H70 L66 112 Q65.6 116 61 116 H39 Q34.4 116 34 112 Z" fill="${PAL.milk}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M31.6 44 H68.4 L67.1 72 H32.9 Z" fill="${PAL.coffee}"/>
+    <path d="M32.9 72 H67.1 L66 96 H34 Z" fill="${PAL.milk}"/>
+    <rect x="38" y="28" width="13" height="13" rx="3" fill="${PAL.ice}" stroke="${L}" stroke-width="2"/>
+    <rect x="52" y="31" width="11" height="11" rx="3" fill="${PAL.ice}" stroke="${L}" stroke-width="2"/>
+    <path d="M62 8 L54 30" stroke="${L}" stroke-width="4"/>
+    <path d="M28 22 H72" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- mocktail cold brew: jeruk + gelembung --- */
+  mocktail: L => `
+    <path d="M30 26 H70 L66 112 Q65.6 116 61 116 H39 Q34.4 116 34 112 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M31.4 46 H68.6 L67.4 68 H32.6 Z" fill="${PAL.berry}" opacity=".85"/>
+    <circle cx="40" cy="82" r="3.4" fill="${PAL.cream}" opacity=".6"/>
+    <circle cx="55" cy="94" r="2.6" fill="${PAL.cream}" opacity=".5"/>
+    <circle cx="47" cy="103" r="2" fill="${PAL.cream}" opacity=".45"/>
+    <circle cx="72" cy="30" r="11" fill="${PAL.sugar}" stroke="${L}" stroke-width="2.6"/>
+    <path d="M72 19 v22 M61 30 h22" stroke="${L}" stroke-width="1.8" opacity=".7"/>
+    <path d="M36 6 L44 28" stroke="${L}" stroke-width="4"/>
+    <path d="M28 26 H72" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- mojito: daun mint + lime --- */
+  mojito: L => `
+    <path d="M30 30 H70 L66 112 Q65.6 116 61 116 H39 Q34.4 116 34 112 Z" fill="${PAL.mint}" opacity=".55" stroke="${L}" stroke-width="3.4"/>
+    <path d="M45 18 q-14 2 -13 12 q13 2 13 -12Z" fill="${PAL.mint}" stroke="${L}" stroke-width="2.4"/>
+    <path d="M55 14 q14 3 12 13 q-13 1 -12 -13Z" fill="${PAL.mint}" stroke="${L}" stroke-width="2.4"/>
+    <path d="M40 46 a10 10 0 0 1 20 0Z" fill="${PAL.sugar}" stroke="${L}" stroke-width="2.4"/>
+    <circle cx="42" cy="74" r="3.2" fill="${PAL.cream}" opacity=".65"/>
+    <circle cx="56" cy="88" r="2.6" fill="${PAL.cream}" opacity=".55"/>
+    <circle cx="46" cy="100" r="2" fill="${PAL.cream}" opacity=".5"/>
+    <path d="M28 30 H72" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- teh tarik: gelas berbusa + uap --- */
+  teh: L => `
+    <path d="M30 34 H70 L66 104 Q65.6 108 61 108 H39 Q34.4 108 34 104 Z" fill="${PAL.tea}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M31.4 50 H68.6 L67.6 62 H32.4 Z" fill="${PAL.milk}" opacity=".8"/>
+    <path d="M28 34 H72" stroke="${L}" stroke-width="3.4"/>
+    <path d="M22 112 H78" stroke="${L}" stroke-width="3.4"/>
+    <path d="M41 22 q5 -6 0 -12 M52 20 q5 -7 0 -14 M63 22 q5 -6 0 -12" stroke="${L}" stroke-width="2.6" opacity=".8"/>`,
+  /* --- sirup dimasak --- */
+  pan: L => `
+    <path d="M22 52 H74 V88 Q74 100 62 100 H34 Q22 100 22 88 Z" fill="${PAL.berry}" opacity=".85" stroke="${L}" stroke-width="3.4"/>
+    <path d="M18 52 H78" stroke="${L}" stroke-width="3.4"/>
+    <path d="M78 58 H94" stroke="${L}" stroke-width="5"/>
+    <path d="M36 40 q5 -7 0 -14 M50 38 q5 -8 0 -16 M64 40 q5 -7 0 -14" stroke="${L}" stroke-width="2.6" opacity=".8"/>`,
+  /* --- botol sirup --- */
+  bottle: L => `
+    <path d="M43 10 H57 V26 L66 38 V106 Q66 112 59 112 H41 Q34 112 34 106 V38 L43 26 Z" fill="${PAL.sugar}" stroke="${L}" stroke-width="3.4"/>
+    <rect x="38" y="56" width="24" height="26" rx="4" fill="${PAL.cream}" stroke="${L}" stroke-width="2.4"/>
+    <path d="M42 66 h16 M42 74 h11" stroke="${L}" stroke-width="2.2" opacity=".7"/>
+    <path d="M41 6 H59" stroke="${L}" stroke-width="4"/>`,
+  /* --- toples konsentrat --- */
+  jar: L => `
+    <rect x="34" y="10" width="32" height="10" rx="3" fill="${L}"/>
+    <path d="M32 24 H68 V102 Q68 110 60 110 H40 Q32 110 32 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M32 52 H68" stroke="${PAL.cream}" stroke-width="2.4" opacity=".55"/>
+    <path d="M38 66 h16 M38 76 h11" stroke="${PAL.cream}" stroke-width="2.4" opacity=".45"/>`,
+  /* --- espresso: portafilter --- */
+  espresso: L => `
+    <path d="M20 34 H74 V44 Q74 54 62 54 H32 Q20 54 20 44 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M74 40 H92" stroke="${L}" stroke-width="5"/>
+    <path d="M42 56 v8 M54 56 v8" stroke="${L}" stroke-width="3"/>
+    <path d="M34 76 H66 V96 Q66 104 57 104 H43 Q34 104 34 96 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M66 82 q10 6 0 12" stroke="${L}" stroke-width="3.2"/>`,
+  /* --- teko teh --- */
+  teapot: L => `
+    <path d="M26 52 H72 V80 Q72 96 56 96 H42 Q26 96 26 80 Z" fill="${PAL.tea}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M72 60 q14 4 14 16" stroke="${L}" stroke-width="3.4"/>
+    <path d="M26 62 Q10 62 12 76" stroke="${L}" stroke-width="3.4"/>
+    <path d="M22 52 H76" stroke="${L}" stroke-width="3.4"/>
+    <path d="M49 52 v-8" stroke="${L}" stroke-width="3.4"/>
+    <circle cx="49" cy="40" r="4" fill="${L}"/>
+    <path d="M86 82 q0 12 -8 18" stroke="${L}" stroke-width="2.6" opacity=".7"/>`
+};
+const ART_LABEL = {v60:"Dripper V60", switch:"Hario Switch", switchice:"Switch + es", icedrip:"Dripper + gelas es",
+  latte:"Es kopi susu", mocktail:"Mocktail cold brew", mojito:"Mojito", teh:"Teh tarik",
+  pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat", espresso:"Espresso", teapot:"Teko teh"};
+
+function artKey(r){
+  if(r.art && ART[r.art]) return r.art;
+  if(r.kind === "note") return "jar";
+  if(r.kind === "mix") return {susu:"latte", coldbrew:"mocktail", teh:"teh", sirup:"bottle"}[r.cat] || "latte";
+  return r.ice ? "icedrip" : "v60";
+}
+function artSVG(key, w, dark, tone){
+  const L = dark ? "#F5EEDF"
+    : ({green:"#2F3B26", blue:"#2C4A63", red:"#A2381F", gold:"#6E4A0C"}[tone] || "#2F3B26");
+  return `<svg width="${w}" height="${Math.round(w*1.2)}" viewBox="0 0 100 120" fill="none"
+    stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">${(ART[key] || ART.v60)(L)}</svg>`;
+}
+const artFor = (r, w, mode) => artSVG(artKey(r), w, mode === "dark", r.tone);
+
+const ICON = {
+  home:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/></svg>',
+  book:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M8 4v13"/></svg>',
+  note:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg>',
+  plus:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 5l-7 7 7 7"/></svg>',
+  play:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l12 7-12 7z"/></svg>',
+  search:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  bulb:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5V16h8v-2.5A6 6 0 0012 3z"/></svg>',
+  snd:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 010 6"/></svg>'
+};
+
+/* =========================================================
+   7. VIEWS
+   ========================================================= */
+function greeting(){
+  const h = new Date().getHours();
+  return h < 11 ? "Selamat pagi" : h < 15 ? "Selamat siang" : h < 19 ? "Selamat sore" : "Selamat malam";
+}
+function todayText(){
+  const d = new Date();
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
+  const bln = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"][d.getMonth()];
+  return hari + ", " + d.getDate() + " " + bln + " " + d.getFullYear();
+}
+
+function homeView(){
+  const all = recipes();
+  const brews = all.filter(r => r.kind === "brew");
+  const mixes = all.filter(r => r.kind === "mix");
+  const notes = all.filter(r => r.kind === "note");
+  const pick = byId(store.last) || brews.find(r => (r.stars || 0) >= 3) || brews[0];
+  const picks = all.filter(r => (r.stars || 0) >= 2 && r.id !== (pick && pick.id)).slice(0, 6);
+  const favs = all.filter(r => store.favs.includes(r.id));
+
+  return `<div class="wrap">
+    <div class="top">
+      <h1 class="hello">${greeting()},<br>Wahyu</h1>
+      <p class="today">${todayText()}</p>
+    </div>
+
+    <div class="bento">
+      ${pick ? `<button class="tile ${pick.tone === "blue" ? "blue" : "green"} span2 hero" data-open="${pick.id}">
+        <span class="hero-txt">
+          <span class="t-lbl">${store.last === pick.id ? "Terakhir dibuka" : "Resep andalan"}</span>
+          <h2>${esc(pick.name)}</h2>
+          <span class="go">${ICON.play} ${pick.kind === "brew" ? "Mulai seduh" : pick.kind === "mix" ? "Lihat takaran" : "Buka catatan"}</span>
+        </span>
+        <span class="art">${artFor(pick, 84, "dark")}</span>
+      </button>` : ""}
+
+      <button class="tile sand" data-view="list" data-kind="brew">
+        <span class="t-lbl">Resep seduh</span>
+        <span class="t-num">${brews.length}</span>
+        <span class="t-sub">manual brew bertimer</span>
+      </button>
+      <button class="tile gold" data-view="list" data-kind="mix">
+        <span class="t-lbl">Racikan</span>
+        <span class="t-num">${mixes.length}</span>
+        <span class="t-sub">kopi susu, cold brew, sirup</span>
+      </button>
+
+      <button class="tile red span2" data-view="notes">
+        <span class="t-lbl">Catatan &amp; rasio</span>
+        <span class="t-num">${notes.length}</span>
+        <span class="t-sub">konsentrat dan larutan dasar, bukan resep jadi</span>
+      </button>
+    </div>
+
+    ${picks.length ? `<div class="sec-h"><h3>Sering dipakai</h3><button data-view="list">Semua</button></div>
+      <div class="mini-row">${picks.map(r => `<button class="mini" data-open="${r.id}">
+        <span class="mart">${artFor(r, 34, "light")}</span>
+        <b>${esc(r.name)}</b><span>${miniMeta(r)}</span></button>`).join("")}</div>` : ""}
+
+    ${favs.length ? `<div class="sec-h"><h3>Ditandai</h3></div>${favs.map(rowHTML).join("")}` : ""}
+
+    <div class="sec-h"><h3>Tambah sendiri</h3></div>
+    <button class="row" data-new="brew">
+      <span class="ic green">${ICON.plus}</span>
+      <span class="bd"><b>Resep seduh baru</b><span>langkah, waktu, suhu, dripper, tips</span></span>
+    </button>
+    <button class="row" data-new="mix">
+      <span class="ic gold">${ICON.plus}</span>
+      <span class="bd"><b>Racikan baru</b><span>daftar bahan dan takaran</span></span>
+    </button>
+    <button class="row" data-new="note">
+      <span class="ic blue">${ICON.plus}</span>
+      <span class="bd"><b>Catatan rasio baru</b><span>konsentrat, larutan, patokan</span></span>
+    </button>
+    <p class="foot">${all.length} entri tersimpan di perangkat ini</p>
+  </div>`;
+}
+
+function miniMeta(r){
+  if(r.kind === "brew") return fmt(r.dose) + " g, " + mmss(totalTime(r));
+  if(r.kind === "mix") return r.ing.length + " bahan";
+  return "rasio";
+}
+function rowHTML(r){
+  return `<button class="row" data-open="${r.id}">
+    <span class="ic ${r.tone || ""}">${artFor(r, 31, r.tone ? "dark" : "light")}</span>
+    <span class="bd"><b>${esc(r.name)}</b><span>${listMeta(r)}</span></span>
+    ${store.favs.includes(r.id) ? '<span class="star">★</span>' : ""}
+  </button>`;
+}
+function listMeta(r){
+  if(r.kind === "brew"){
+    const bits = [fmt(r.dose) + " g", fmt(waterOf(r)) + " g air", mmss(totalTime(r))];
+    if(r.dripper) bits.push(r.dripper);
+    return bits.join(" · ");
+  }
+  if(r.kind === "mix") return r.ing.length + " bahan, per " + r.unit;
+  return "Catatan rasio dari berat " + r.basis;
+}
+
+function listView(){
+  const q = state.q.trim().toLowerCase();
+  let list = recipes().filter(r => r.kind !== "note");
+  if(state.cat === "brew") list = list.filter(r => r.kind === "brew");
+  else if(state.cat === "mix") list = list.filter(r => r.kind === "mix");
+  else if(state.cat !== "all") list = list.filter(r => r.cat === state.cat);
+  if(q) list = list.filter(r => r.name.toLowerCase().includes(q) ||
+      (r.ing || []).some(i => i.nm.toLowerCase().includes(q)) ||
+      (r.dripper || "").toLowerCase().includes(q));
+
+  const chips = [["all","Semua"],["brew","Seduh"],["mix","Racikan"]]
+    .concat(Object.entries(CATS))
+    .map(([k,v]) => `<button class="chip" aria-pressed="${state.cat===k}" data-cat="${k}">${v}</button>`).join("");
+
+  return `<div class="wrap">
+    <div class="top"><h1 class="hello">Resep</h1></div>
+    <div class="search">${ICON.search}<input id="q" type="search" placeholder="Cari resep, bahan, dripper" value="${esc(state.q)}"></div>
+    <div class="chips">${chips}</div>
+    ${list.length ? list.map(rowHTML).join("") : '<p class="empty">Belum ada yang cocok. Ganti kata kunci atau buat resep baru.</p>'}
+    <p class="foot">${list.length} resep</p>
+  </div>`;
+}
+
+function notesView(){
+  const notes = recipes().filter(r => r.kind === "note");
+  return `<div class="wrap">
+    <div class="top"><h1 class="hello">Catatan &amp; rasio</h1>
+      <p class="today">Bahan dasar yang dipakai berulang. Bukan resep jadi.</p></div>
+    ${notes.map(rowHTML).join("")}
+    <button class="row" data-new="note">
+      <span class="ic blue">${ICON.plus}</span>
+      <span class="bd"><b>Catatan baru</b><span>simpan patokan rasio sendiri</span></span>
+    </button>
+    <p class="foot">${notes.length} catatan</p>
+  </div>`;
+}
+
+function detailView(){
+  const r = byId(state.id);
+  if(!r) return `<div class="wrap"><p class="empty">Resep tidak ditemukan.</p></div>`;
+  if(state.scale[r.id] === undefined)
+    state.scale[r.id] = r.kind === "brew" ? r.dose : r.kind === "note" ? r.def : 1;
+  const v = state.scale[r.id];
+  const fav = store.favs.includes(r.id);
+
+  const head = `<div class="bar">
+      <button class="lnk" data-back>${ICON.back} Kembali</button><span class="sp"></span>
+      <button class="lnk" data-fav>${fav ? "★ Ditandai" : "☆ Tandai"}</button>
+      <button class="lnk" data-edit>Edit</button>
+    </div>
+    <div class="head ${r.tone || ""}">
+      <span class="kind">${kindName(r.kind)}${isEdited(r.id) ? " · diubah" : ""}</span>
+      <h2>${esc(r.name)}</h2>
+      ${r.flavor ? `<p class="flavor">${esc(r.flavor)}</p>` : ""}
+      <span class="art">${artFor(r, 92, r.tone === "gold" ? "light" : "dark")}</span>
+    </div>`;
+
+  if(r.kind === "brew") return `<div class="wrap">${head}${brewDetail(r, v)}</div>`;
+  if(r.kind === "mix")  return `<div class="wrap">${head}${mixDetail(r, v)}</div>`;
+  return `<div class="wrap">${head}${noteDetail(r, v)}</div>`;
+}
+
+function brewDetail(r, dose){
+  const k = dose / r.dose, c = cums(r), water = waterOf(r), total = totalTime(r);
+  const specs = [["Dose", fmt(dose) + " g"], ["Air", fmt(water*k) + " g"],
+                 ["Rasio", "1:" + fmt(water/r.dose)], ["Suhu", r.temp || "—"],
+                 ["Grind", r.grind || "—"], ["Dripper", r.dripper || "—"],
+                 ["Waktu", mmss(total)], ["Es", r.ice ? fmt(r.ice*k) + " g" : "—"]];
+  const items = r.steps.map((s,i) => `
+    <div class="tl-item ${r.tone === "blue" ? "b" : ""}">
+      <span class="badge">${mmss(i ? r.steps[i-1].at : 0)}</span>
+      <span class="tl-bd">
+        <span class="amt">${fmt(c[i]*k)} g</span><b>${esc(s.n)}</b>
+        <p>tuang ${fmt(s.pour*k)} g${s.note ? ", " + esc(s.note) : ""}</p>
+        <p>sampai ${mmss(s.at)}</p>
+        ${pourChip(s)}
+      </span>
+    </div>`).join("");
+  const fin = `<div class="tl-item ghost">
+      <span class="badge">${mmss(total)}</span>
+      <span class="tl-bd"><span class="amt">${fmt(water*k)} g</span>
+        <b>${esc(r.finishLabel || "Angkat dripper")}</b>
+        <p>${esc(r.finishNote || (r.ice ? "tuang ke gelas berisi es " + fmt(r.ice*k) + " g" : "air sudah turun habis"))}</p>
+        ${pourChip({ps:r.finishPs})}</span>
+    </div>`;
+
+  return `
+  <div class="specs">${specs.slice(0,4).map(s => `<span class="spec"><i>${s[0]}</i><b>${s[1]}</b></span>`).join("")}</div>
+  <div class="specs">${specs.slice(4).map(s => `<span class="spec"><i>${s[0]}</i><b>${s[1]}</b></span>`).join("")}</div>
+
+  <div class="card">
+    <div class="dose">
+      <span><span class="t-lbl" style="color:var(--faint)">Berat kopi</span><br>
+        <span class="dose-v">${fmt(dose)}<small>gram</small></span></span>
+      <span class="stepper"><button data-d="-1">−</button><button data-d="1">+</button></span>
+    </div>
+    <div class="yields">
+      <span><b>${fmt(water*k)} g</b><span>total air</span></span>
+      ${r.ice ? `<span><b>${fmt(r.ice*k)} g</b><span>es${r.iceText ? " (" + r.iceText + ")" : ""}</span></span>` : ""}
+      <span><b>${mmss(total)}</b><span>waktu seduh</span></span>
+    </div>
+  </div>
+
+  <div class="tl">${items}${fin}</div>
+
+  ${r.tips ? `<div class="tip ${r.tone === "blue" ? "blue" : ""}"><h4>${ICON.bulb} Tips</h4><p>${esc(r.tips)}</p></div>` : ""}
+
+  <div class="cta">
+    <button class="btn" data-brew>${ICON.play} Mulai seduh</button>
+    <button class="btn ghost" data-edit>Edit</button>
+  </div>
+  <p class="foot">Semua angka menyesuaikan berat kopi di atas.</p>`;
+}
+
+function mixDetail(r, mult){
+  const rows = arr => arr.map(i => `<li><span>${esc(i.nm)}${i.alt ? `<em>${esc(i.alt)}</em>` : ""}</span>
+      <span class="a">${fmt(i.a*mult)} g</span></li>`).join("");
+  const tot = r.ing.reduce((s,i) => s + (+i.a||0), 0) * mult;
+  return `
+  <div class="card">
+    <div class="dose">
+      <span><span class="t-lbl" style="color:var(--faint)">Jumlah</span><br>
+        <span class="dose-v">${fmt(mult)}<small>${esc(r.unit)}</small></span></span>
+      <span class="stepper"><button data-d="-0.5">−</button><button data-d="0.5">+</button></span>
+    </div>
+    <div class="yields"><span><b>${fmt(tot)} g</b><span>perkiraan berat total</span></span></div>
+  </div>
+  <div class="card"><ul class="ing">${rows(r.ing)}</ul>
+    ${r.addon && r.addon.length ? `<p class="sub">Tambahan</p><ul class="ing">${rows(r.addon)}</ul>` : ""}</div>
+  ${r.note ? `<div class="tip"><h4>${ICON.bulb} Catatan</h4><p>${esc(r.note)}</p></div>` : ""}
+  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit racikan</button></div>`;
+}
+
+function noteDetail(r, g){
+  return `
+  <div class="card">
+    <label class="t-lbl" style="color:var(--faint)">Berat ${esc(r.basis)}</label>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
+      <input id="nin" type="number" inputmode="decimal" min="0" value="${g}" style="width:110px">
+      <span style="color:var(--muted)">gram</span>
+    </div>
+    <div class="note-out" id="nout">
+      ${r.ratios.map(x => `<span><b>${fmt(g*x.v)} g</b><span>${esc(x.lb)}</span></span>`).join("")}
+    </div>
+  </div>
+  ${r.note ? `<div class="tip"><h4>${ICON.bulb} Catatan</h4><p>${esc(r.note)}</p></div>` : ""}
+  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit catatan</button></div>`;
+}
+
+function navHTML(v){
+  return `<nav class="nav"><div class="nav-in">
+    <button data-view="home" aria-current="${v==="home"}">${ICON.home}Beranda</button>
+    <button data-view="list" aria-current="${v==="list"}">${ICON.book}Resep</button>
+    <button data-view="notes" aria-current="${v==="notes"}">${ICON.note}Catatan</button>
+    <button class="fab" data-new="brew" aria-label="Tambah resep">${ICON.plus}</button>
+  </div></nav>`;
+}
+
+/* =========================================================
+   8. EDITOR
+   ========================================================= */
+function newRecipe(kind){
+  return kind === "brew"
+    ? {id:"", kind:"brew", name:"", cat:"panas", tone:"green", dose:15, dripper:"", temp:"", grind:"",
+       ice:0, flavor:"", tips:"", finishLabel:"Angkat dripper", finishNote:"", drawdown:0,
+       steps:[{n:"Bloom", at:40, pour:40, ps:"center", note:""},{n:"Tuang", at:120, pour:100, ps:"spiral", note:""}]}
+    : kind === "mix"
+    ? {id:"", kind:"mix", name:"", cat:"susu", tone:"gold", unit:"gelas", note:"",
+       ing:[{nm:"", a:0, alt:""}], addon:[]}
+    : {id:"", kind:"note", name:"", tone:"blue", basis:"kopi", def:100, note:"",
+       ratios:[{lb:"Air, rasio 1:8", v:8}]};
+}
+
+function editView(){
+  const d = state.draft; if(!d) return "";
+  const isNew = !d.id;
+  const toneSel = `<select id="f-tone">${["green","blue","red","gold"].map(t =>
+    `<option value="${t}" ${d.tone===t?"selected":""}>${{green:"Hijau",blue:"Biru",red:"Merah bata",gold:"Kuning"}[t]}</option>`).join("")}</select>`;
+
+  let body = "";
+  if(d.kind === "brew"){
+    body = `
+    <div class="grid2">
+      <div class="field"><label>Berat kopi (g)</label><input id="f-dose" type="number" step="0.5" value="${d.dose}"></div>
+      <div class="field"><label>Es (g, isi 0 kalau panas)</label><input id="f-ice" type="number" step="1" value="${d.ice||0}"></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Suhu air</label><input id="f-temp" value="${esc(d.temp)}" placeholder="92°C"></div>
+      <div class="field"><label>Grind</label><input id="f-grind" value="${esc(d.grind)}" placeholder="FM 10.5"></div>
+      <div class="field"><label>Drawdown</label><input id="f-draw" value="${d.drawdown ? mmss(d.drawdown) : ""}" placeholder="2:30"></div>
+    </div>
+    <div class="field"><label>Dripper / alat</label><input id="f-dripper" value="${esc(d.dripper)}" placeholder="Hario Switch"></div>
+    <div class="field"><label>Karakter rasa</label><input id="f-flavor" value="${esc(d.flavor)}" placeholder="Clean, sweet & balanced"></div>
+
+    <p class="sub">Langkah tuang</p>
+    <div id="steps">${d.steps.map((s,i) => stepRow(s,i)).join("")}</div>
+    <button class="add" data-add="step">+ Tambah langkah</button>
+
+    <div class="grid2">
+      <div class="field"><label>Langkah penutup</label><input id="f-fl" value="${esc(d.finishLabel)}" placeholder="Angkat dripper"></div>
+      <div class="field"><label>Catatan penutup</label><input id="f-fn" value="${esc(d.finishNote)}" placeholder="swirl lalu buka switch"></div>
+    </div>
+    <div class="field"><label>Tips</label><textarea id="f-tips" placeholder="Swirl lembut untuk meratakan ekstraksi...">${esc(d.tips)}</textarea></div>`;
+  } else if(d.kind === "mix"){
+    body = `
+    <div class="grid2">
+      <div class="field"><label>Satuan</label><input id="f-unit" value="${esc(d.unit)}" placeholder="gelas"></div>
+      <div class="field"><label>Warna kartu</label>${toneSel}</div>
+    </div>
+    <p class="sub">Bahan</p>
+    <div id="ings">${d.ing.map((x,i) => ingRow(x,i,"ing")).join("")}</div>
+    <button class="add" data-add="ing">+ Tambah bahan</button>
+    <p class="sub">Tambahan (opsional)</p>
+    <div id="addons">${(d.addon||[]).map((x,i) => ingRow(x,i,"addon")).join("")}</div>
+    <button class="add" data-add="addon">+ Tambah opsional</button>
+    <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
+  } else {
+    body = `
+    <div class="grid2">
+      <div class="field"><label>Basis (bahan yang ditimbang)</label><input id="f-basis" value="${esc(d.basis)}" placeholder="kopi"></div>
+      <div class="field"><label>Berat contoh (g)</label><input id="f-def" type="number" value="${d.def}"></div>
+    </div>
+    <p class="sub">Rasio</p>
+    <div id="ratios">${d.ratios.map((x,i) => ratioRow(x,i)).join("")}</div>
+    <button class="add" data-add="ratio">+ Tambah rasio</button>
+    <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
+  }
+
+  const catSel = d.kind === "note" ? "" : `<div class="field"><label>Kategori</label>
+    <select id="f-cat">${Object.entries(CATS).map(([k,v]) =>
+      `<option value="${k}" ${d.cat===k?"selected":""}>${v}</option>`).join("")}</select></div>`;
+
+  return `<div class="wrap">
+    <div class="bar"><button class="lnk" data-back>${ICON.back} Batal</button><span class="sp"></span>
+      <span style="color:var(--muted);font-size:13px">${isNew ? "Baru" : "Edit"} · ${kindName(d.kind)}</span></div>
+    <h1 class="hello" style="margin-top:8px">${isNew ? "Buat " + kindName(d.kind).toLowerCase() : esc(d.name)}</h1>
+
+    <div class="field"><label>Nama</label><input id="f-name" value="${esc(d.name)}" placeholder="Nama resep"></div>
+    ${catSel}
+    ${d.kind === "brew" ? `<div class="field"><label>Warna kartu</label>${toneSel}</div>` : ""}
+    <div class="field"><label>Ilustrasi</label>
+      <select id="f-art">${Object.entries(ART_LABEL).map(([k,v]) =>
+        `<option value="${k}" ${artKey(d)===k?"selected":""}>${v}</option>`).join("")}</select></div>
+    <div class="artprev">${artFor({...d, art:artKey(d)}, 62, "light")}</div>
+    ${body}
+    <div id="warn"></div>
+    <div class="cta">
+      <button class="btn" data-save>Simpan</button>
+      ${!isNew && isCustom(d.id) ? '<button class="btn ghost" data-del>Hapus</button>' : ""}
+      ${!isNew && !isCustom(d.id) && isEdited(d.id) ? '<button class="btn ghost" data-reset>Kembalikan asal</button>' : ""}
+    </div>
+    <p class="foot">Tersimpan di perangkat ini lewat penyimpanan aplikasi.</p>
+  </div>`;
+}
+function stepRow(s, i){
+  return `<div class="ed-row" data-si="${i}">
+    <div class="hd"><b>Langkah ${i+1}</b><button class="del" data-rm="step" data-i="${i}">Hapus</button></div>
+    <input class="s-n" value="${esc(s.n)}" placeholder="Nama langkah, misal Bloom">
+    <div class="grid2" style="margin-top:8px">
+      <span><label>Tuang (g)</label><input class="s-pour" type="number" step="1" value="${s.pour}"></span>
+      <span><label>Selesai di</label><input class="s-at" value="${mmss(s.at)}" placeholder="0:40"></span>
+    </div>
+    <div style="margin-top:8px"><label>Jenis tuangan</label>
+      <select class="s-ps">
+        <option value="">— belum diatur —</option>
+        ${Object.entries(POURS).map(([k,v]) => `<option value="${k}" ${s.ps===k?"selected":""}>${v.lb} — ${v.desc}</option>`).join("")}
+      </select></div>
+    <input class="s-note" style="margin-top:8px" value="${esc(s.note||"")}" placeholder="Catatan, misal fast 2 set">
+  </div>`;
+}
+function ingRow(x, i, key){
+  return `<div class="ed-row" data-${key}="${i}">
+    <div class="hd"><b>${i+1}</b><button class="del" data-rm="${key}" data-i="${i}">Hapus</button></div>
+    <div class="grid2">
+      <span><label>Bahan</label><input class="i-nm" value="${esc(x.nm)}"></span>
+      <span><label>Gram</label><input class="i-a" type="number" step="0.5" value="${x.a}"></span>
+    </div>
+    <input class="i-alt" style="margin-top:8px" value="${esc(x.alt||"")}" placeholder="Alternatif / rentang (opsional)">
+  </div>`;
+}
+function ratioRow(x, i){
+  return `<div class="ed-row" data-ri="${i}">
+    <div class="hd"><b>${i+1}</b><button class="del" data-rm="ratio" data-i="${i}">Hapus</button></div>
+    <div class="grid2">
+      <input class="r-lb" value="${esc(x.lb)}" placeholder="Label, misal Air rasio 1:8">
+      <input class="r-v" type="number" step="0.05" value="${x.v}" placeholder="Pengali">
+    </div>
+  </div>`;
+}
+
+function collectDraft(){
+  const d = state.draft, q = s => app.querySelector(s);
+  d.name = q("#f-name").value.trim();
+  if(q("#f-cat")) d.cat = q("#f-cat").value;
+  if(q("#f-tone")) d.tone = q("#f-tone").value;
+  if(q("#f-art")) d.art = q("#f-art").value;
+  if(d.kind === "brew"){
+    d.dose = +q("#f-dose").value || 1;
+    d.ice = +q("#f-ice").value || 0;
+    d.temp = q("#f-temp").value.trim();
+    d.grind = q("#f-grind").value.trim();
+    d.dripper = q("#f-dripper").value.trim();
+    d.flavor = q("#f-flavor").value.trim();
+    d.tips = q("#f-tips").value.trim();
+    d.finishLabel = q("#f-fl").value.trim() || "Angkat dripper";
+    d.finishNote = q("#f-fn").value.trim();
+    d.drawdown = parseTime(q("#f-draw").value) || 0;
+    d.steps = [...app.querySelectorAll("#steps .ed-row")].map(el => ({
+      n: el.querySelector(".s-n").value.trim() || "Tuang",
+      pour: +el.querySelector(".s-pour").value || 0,
+      at: parseTime(el.querySelector(".s-at").value),
+      ps: el.querySelector(".s-ps").value,
+      note: el.querySelector(".s-note").value.trim()
+    })).filter(s => s.at > 0);
+    d.steps.sort((a,b) => a.at - b.at);
+  } else if(d.kind === "mix"){
+    d.unit = q("#f-unit").value.trim() || "gelas";
+    d.note = q("#f-note").value.trim();
+    const grab = sel => [...app.querySelectorAll(sel + " .ed-row")].map(el => ({
+      nm: el.querySelector(".i-nm").value.trim(),
+      a: +el.querySelector(".i-a").value || 0,
+      alt: el.querySelector(".i-alt").value.trim()
+    })).filter(x => x.nm);
+    d.ing = grab("#ings"); d.addon = grab("#addons");
+  } else {
+    d.basis = q("#f-basis").value.trim() || "bahan";
+    d.def = +q("#f-def").value || 100;
+    d.note = q("#f-note").value.trim();
+    d.ratios = [...app.querySelectorAll("#ratios .ed-row")].map(el => ({
+      lb: el.querySelector(".r-lb").value.trim(),
+      v: +el.querySelector(".r-v").value || 0
+    })).filter(x => x.lb && x.v > 0);
+  }
+  return d;
+}
+function validate(d){
+  if(!d.name) return "Nama resep belum diisi.";
+  if(d.kind === "brew" && !d.steps.length) return "Isi minimal satu langkah dengan waktu.";
+  if(d.kind === "mix" && !d.ing.length) return "Isi minimal satu bahan.";
+  if(d.kind === "note" && !d.ratios.length) return "Isi minimal satu rasio.";
+  return "";
+}
+
+/* =========================================================
+   9. BINDINGS
+   ========================================================= */
+function bind(v){
+  app.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
+    const k = b.dataset.kind;
+    if(k){ state.cat = k; state.q = ""; }
+    go(b.dataset.view);
+  });
+  app.querySelectorAll("[data-open]").forEach(b => b.onclick = () => {
+    store.last = b.dataset.open; saveStore(); go("detail", b.dataset.open);
+  });
+  app.querySelectorAll("[data-new]").forEach(b => b.onclick = () => {
+    state.draft = newRecipe(b.dataset.new); go("edit");
+  });
+  const back = app.querySelector("[data-back]");
+  if(back) back.onclick = () => go(state.view === "edit" && state.draft && state.draft.id ? "detail" : "list");
+
+  if(v === "list"){
+    const q = app.querySelector("#q");
+    q.oninput = e => { state.q = e.target.value; render();
+      const n = app.querySelector("#q"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
+    app.querySelectorAll("[data-cat]").forEach(c => c.onclick = () => { state.cat = c.dataset.cat; render(); });
+  }
+
+  if(v === "detail"){
+    const r = byId(state.id);
+    app.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+      const min = r.kind === "brew" ? 5 : 0.5;
+      state.scale[r.id] = Math.max(min, Math.round((state.scale[r.id] + parseFloat(b.dataset.d)) * 10) / 10);
+      render();
+    });
+    app.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => {
+      state.draft = JSON.parse(JSON.stringify(r)); go("edit");
+    });
+    const fav = app.querySelector("[data-fav]");
+    if(fav) fav.onclick = () => {
+      store.favs = store.favs.includes(r.id) ? store.favs.filter(x => x !== r.id) : store.favs.concat(r.id);
+      saveStore(); render();
+    };
+    const bw = app.querySelector("[data-brew]");
+    if(bw) bw.onclick = () => openBrew(r);
+    const nin = app.querySelector("#nin");
+    if(nin) nin.oninput = e => {
+      const g = Math.max(0, parseFloat(e.target.value) || 0);
+      state.scale[r.id] = g;
+      app.querySelector("#nout").innerHTML = r.ratios.map(x =>
+        `<span><b>${fmt(g*x.v)} g</b><span>${esc(x.lb)}</span></span>`).join("");
+    };
+  }
+
+  if(v === "edit"){
+    app.querySelectorAll("[data-add]").forEach(b => b.onclick = () => {
+      const d = collectDraft(), t = b.dataset.add;
+      if(t === "step"){
+        const last = d.steps[d.steps.length-1];
+        d.steps.push({n:"Tuang", at:(last ? last.at + 40 : 40), pour:50, ps:"circle", note:""});
+      }
+      if(t === "ing") d.ing.push({nm:"", a:0, alt:""});
+      if(t === "addon") d.addon.push({nm:"", a:0, alt:""});
+      if(t === "ratio") d.ratios.push({lb:"", v:1});
+      render();
+    });
+    app.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
+      const d = collectDraft(), i = +b.dataset.i, t = b.dataset.rm;
+      if(t === "step") d.steps.splice(i,1);
+      if(t === "ing") d.ing.splice(i,1);
+      if(t === "addon") d.addon.splice(i,1);
+      if(t === "ratio") d.ratios.splice(i,1);
+      render();
+    });
+    const asel = app.querySelector("#f-art");
+    if(asel) asel.onchange = () => {
+      app.querySelector(".artprev").innerHTML = artFor({...state.draft, art:asel.value, tone:(app.querySelector("#f-tone")||{}).value || state.draft.tone}, 62, "light");
+    };
+    const save = app.querySelector("[data-save]");
+    if(save) save.onclick = () => {
+      const d = collectDraft(), msg = validate(d);
+      if(msg){ app.querySelector("#warn").innerHTML = `<p class="warn">${msg}</p>`; return; }
+      if(!d.id) d.id = "u" + Date.now().toString(36);
+      store.custom[d.id] = d;
+      store.deleted = store.deleted.filter(x => x !== d.id);
+      saveStore(); state.draft = null; state.scale[d.id] = undefined;
+      go("detail", d.id);
+    };
+    const del = app.querySelector("[data-del]");
+    if(del) del.onclick = () => {
+      const id = state.draft.id;
+      delete store.custom[id];
+      if(!store.deleted.includes(id)) store.deleted.push(id);
+      saveStore(); state.draft = null; go("list");
+    };
+    const rst = app.querySelector("[data-reset]");
+    if(rst) rst.onclick = () => {
+      delete store.custom[state.draft.id];
+      saveStore(); const id = state.draft.id; state.draft = null; go("detail", id);
+    };
+  }
+}
+
+/* =========================================================
+   10. MODE SEDUH
+   ========================================================= */
+const A = () => window.anime;
+const $b = id => ovRoot.querySelector("#" + id);
+let B = null;
+
+function rigSVG(blue){
+  const line = "#F1EADA";
+  return `<svg class="rig" id="rig" viewBox="0 0 100 150" fill="none" aria-hidden="true">
+    <path d="M10 8 H90 L54 62 H46 Z" fill="rgba(255,255,255,.12)" stroke="${line}" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M50 9 V60 M28 9 L43 60 M72 9 L57 60" stroke="${line}" stroke-width="1.2" opacity=".4"/>
+    <path d="M22 20 H78 L54 56 H46 Z" fill="#4A2E15" opacity=".8"/>
+    <ellipse cx="50" cy="20" rx="27" ry="4.5" fill="#33200D"/>
+    <rect class="stream" x="48.8" y="63" width="2.4" height="20" rx="1.2" fill="#F1EADA"/>
+    <circle class="drop d1" cx="50" cy="65" r="2"/><circle class="drop d2" cx="50" cy="65" r="1.6"/>
+    <circle class="drop d3" cx="50" cy="65" r="1.8"/>
+    <clipPath id="cc"><path d="M22 86 H78 V132 Q78 142 68 142 H32 Q22 142 22 132 Z"/></clipPath>
+    <g clip-path="url(#cc)">
+      <g id="liquid" style="transform:translateY(142px)">
+        <g class="waveG"><path d="M-90 3 q22.5 -6 45 0 t45 0 t45 0 t45 0 V90 H-90 Z" fill="#C98232"/></g>
+        <rect x="-8" y="5" width="120" height="150" fill="#A96A24"/>
+      </g>
+    </g>
+    <path d="M22 86 H78 V132 Q78 142 68 142 H32 Q22 142 22 132 Z" stroke="${line}" stroke-width="2.6" fill="none"/>
+    <path d="M78 96 q14 7 0 24" stroke="${line}" stroke-width="2.6" fill="none"/>
+    <path d="M18 85 H82" stroke="${line}" stroke-width="2.8" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function openBrew(r){
+  const k = state.scale[r.id] / r.dose;
+  const c = cums(r), water = waterOf(r), total = totalTime(r);
+  const anchors = r.steps.map((s,i) => i ? r.steps[i-1].at : 0).concat([total]);
+  B = { r, k, c, water, total, anchors, elapsed:0, running:true, t0:Date.now(),
+        act:-1, pourUntil:0, done:false, raf:null, wake:null, lastSec:null, lastInt:0 };
+
+  const rows = r.steps.map((s,i) => `
+    <div class="btl-i" data-i="${i}">
+      <span class="badge">${mmss(i ? r.steps[i-1].at : 0)}</span>
+      <span class="fill"></span>
+      <span class="btl-bd"><span class="amt">${fmt(c[i]*k)} g</span><b>${esc(s.n)}</b>
+        <p>tuang ${fmt(s.pour*k)} g${s.note ? ", " + esc(s.note) : ""}</p>${pourChip(s)}</span>
+    </div>`).join("");
+
+  ovRoot.innerHTML = `<div class="brew" id="ovBrew"><div class="brew-in">
+    <div class="brew-bar">
+      <button class="lnk" id="bClose">${ICON.back} Kembali</button>
+      <span class="nm">${esc(r.name)} · ${fmt(state.scale[r.id])} g</span>
+      <button class="snd ${store.sound ? "" : "off"}" id="bSnd" aria-label="Suara">${ICON.snd}</button>
+    </div>
+
+    <div class="stage" id="stage">
+      <span class="txt">
+        <span class="ph" id="bPhase">Siapkan timbangan</span>
+        <b class="big" id="bTarget">0<small> g</small></b>
+        <span class="cap" id="bCap">Timer jalan, ikuti langkah di bawah.</span>
+        <span id="bPour"></span>
+      </span>
+      ${rigSVG(r.tone === "blue")}
+    </div>
+
+    <div class="clockrow"><b id="bClock">0:00</b><span id="bNext"></span></div>
+
+    <div class="btl" id="bList">${rows}
+      <div class="btl-i" data-i="fin">
+        <span class="badge">${mmss(total)}</span>
+        <span class="btl-bd"><span class="amt">${fmt(water*k)} g</span>
+          <b>${esc(r.finishLabel || "Angkat dripper")}</b>
+          <p>${esc(r.finishNote || (r.ice ? "tuang ke gelas berisi es " + fmt(r.ice*k) + " g" : "air sudah turun habis"))}</p>
+          ${pourChip({ps:r.finishPs})}</span>
+      </div>
+    </div>
+
+    <div class="brew-ctl">
+      <button id="bTgl">Jeda</button>
+      <button class="g" id="bRst">Ulang</button>
+    </div>
+
+    <div class="opt">
+      <span>Bip penanda tiap ${store.interval || 15} detik</span>
+      <button class="sw ${store.interval ? "on" : ""}" id="bInt" aria-label="Bip berkala"><i></i></button>
+    </div>
+    <p class="foot">Bip di tiap pergantian langkah, tik di 3 detik terakhir, dan nada panjang saat selesai.</p>
+  </div></div>`;
+
+  document.body.style.overflow = "hidden";
+  $b("bClose").onclick = closeBrew;
+  $b("bTgl").onclick = toggleBrew;
+  $b("bRst").onclick = resetBrew;
+  $b("bSnd").onclick = () => {
+    store.sound = !store.sound; saveStore();
+    $b("bSnd").classList.toggle("off", !store.sound);
+    if(store.sound) sTick();
+  };
+  $b("bInt").onclick = () => {
+    store.interval = store.interval ? 0 : 15; saveStore();
+    $b("bInt").classList.toggle("on", !!store.interval);
+    ovRoot.querySelector(".opt span").textContent = "Bip penanda tiap " + (store.interval || 15) + " detik";
+  };
+
+  const an = A();
+  if(an){
+    an({targets: $b("stage"), opacity:[0,1], translateY:[12,0], duration:420, easing:"easeOutQuad"});
+    an({targets: ovRoot.querySelectorAll(".btl-i"), translateY:[16,0], duration:500,
+        delay: an.stagger(65,{start:90}), easing:"easeOutQuad"});
+  }
+  try{ navigator.wakeLock.request("screen").then(w => { if(B) B.wake = w; }).catch(()=>{}); }catch(e){}
+  loopBrew();
+}
+
+function loopBrew(){
+  const b = B; if(!b) return;
+  if(b.running && !b.done) b.elapsed = (Date.now() - b.t0) / 1000;
+  paintBrew();
+  b.raf = requestAnimationFrame(loopBrew);
+}
+
+function paintBrew(){
+  const b = B; if(!b || !$b("bClock")) return;
+  const { r, k, c, anchors, total } = b;
+  const el = Math.min(b.elapsed, total);
+  let j = 0;
+  while(j < anchors.length - 1 && el >= anchors[j+1]) j++;
+  const finished = el >= total;
+
+  if(!finished && j !== b.act) stepBrew(j);
+  if(finished && !b.done) finishBrew();
+
+  $b("bClock").textContent = mmss(el);
+
+  if(!finished){
+    const s = r.steps[j];
+    const left = anchors[j+1] - el;
+    const pouring = b.elapsed < b.pourUntil;
+    $b("rig").classList.toggle("pouring", pouring && b.running);
+    $b("stage").classList.toggle("pour", pouring);
+    $b("bPhase").textContent = pouring ? "Tuang sekarang" : "Tahan " + Math.ceil(left) + " detik";
+    $b("bCap").textContent = pouring
+      ? "Tuang " + fmt(s.pour*k) + " g, " + (s.note || "")
+      : "Berikutnya: " + (j+1 < r.steps.length
+          ? "tuang " + fmt(r.steps[j+1].pour*k) + " g pada " + mmss(anchors[j+1])
+          : (r.finishLabel || "angkat dripper").toLowerCase());
+    $b("bNext").textContent = "langkah " + (j+1) + " sampai " + mmss(anchors[j+1]);
+    const pc = pourChip(s, "on");
+    if($b("bPour").dataset.k !== (s.ps || "")){ $b("bPour").dataset.k = s.ps || ""; $b("bPour").innerHTML = pc; }
+
+    if(b.running){
+      const sec = Math.ceil(left);
+      if(sec !== b.lastSec){
+        if(sec <= 3 && sec > 0) sTick();
+        b.lastSec = sec;
+      }
+      if(store.interval > 0){
+        const slot = Math.floor(el / store.interval);
+        if(slot > b.lastInt && el > 1){ b.lastInt = slot; sInterval(); }
+      }
+    }
+  }
+
+  $b("bTgl").textContent = b.done ? "Selesai" : (b.running ? "Jeda" : "Lanjut");
+  $b("bTgl").disabled = !!b.done;
+
+  const items = ovRoot.querySelectorAll(".btl-i");
+  items.forEach((it, i) => {
+    const fill = it.querySelector(".fill"); if(!fill) return;
+    const a0 = anchors[i], a1 = anchors[i+1];
+    const f = el <= a0 ? 0 : el >= a1 ? 1 : (el - a0) / (a1 - a0);
+    fill.style.height = (f * (it.offsetHeight - 54)) + "px";
+  });
+}
+
+function stepBrew(j){
+  const b = B, { r, k, c } = b, s = r.steps[j];
+  b.act = j; b.lastSec = null;
+  const dur = Math.min(9, Math.max(3, s.pour * k / 9));
+  b.pourUntil = b.anchors[j] + dur;
+  countTo($b("bTarget"), j ? c[j-1]*k : 0, c[j]*k);
+  setLevel(c[j] / b.water, dur);
+  markNodes(j, false);
+  pulse(ovRoot.querySelectorAll(".badge")[j]);
+  sStep();
+}
+
+function finishBrew(){
+  const b = B; b.done = true; b.running = false;
+  $b("rig").classList.remove("pouring");
+  $b("stage").classList.remove("pour");
+  $b("stage").classList.add("done");
+  $b("bPhase").textContent = "Selesai";
+  $b("bCap").textContent = b.r.finishNote ||
+    (b.r.ice ? "Tuang ke gelas berisi es " + fmt(b.r.ice*b.k) + " g." : "Angkat dripper dan sajikan.");
+  $b("bNext").textContent = "total " + mmss(b.total);
+  setLevel(1, 1);
+  markNodes(-1, true);
+  const badges = ovRoot.querySelectorAll(".badge");
+  pulse(badges[badges.length-1]);
+  sDone();
+  if(window.confetti) window.confetti({
+    particleCount:70, spread:62, startVelocity:32, gravity:.9, scalar:.9,
+    origin:{y:.3}, colors:["#2F3B26","#E0A93E","#C24B32","#A96A24","#F1EADA"]
+  });
+}
+
+function markNodes(j, finished){
+  const items = ovRoot.querySelectorAll(".btl-i");
+  items.forEach((li, i) => {
+    li.classList.toggle("on", finished ? i === items.length-1 : i === j);
+    li.classList.toggle("past", finished ? i < items.length-1 : i < j);
+  });
+}
+function setLevel(frac, dur){
+  const l = $b("liquid"); if(!l) return;
+  l.style.transitionDuration = dur + "s";
+  l.style.transform = "translateY(" + (142 - Math.min(1, frac) * 56) + "px)";
+}
+function countTo(el, from, to){
+  if(!el) return;
+  const an = A();
+  if(!an){ el.innerHTML = fmt(to) + "<small> g</small>"; return; }
+  const o = { v: from };
+  an({targets:o, v:to, duration:850, easing:"easeOutCubic",
+      update: () => { el.innerHTML = fmt(o.v) + "<small> g</small>"; }});
+}
+function pulse(el){
+  const an = A(); if(!an || !el) return;
+  an({targets: el, scale:[1, 1.22, 1], duration:700, easing:"easeOutElastic(1,.6)"});
+}
+function toggleBrew(){
+  const b = B; if(!b || b.done) return;
+  if(b.running){ b.running = false; $b("rig").classList.remove("pouring"); }
+  else { b.running = true; b.t0 = Date.now() - b.elapsed * 1000; }
+}
+function resetBrew(){
+  const b = B; if(!b) return;
+  Object.assign(b, {elapsed:0, t0:Date.now(), running:true, act:-1, done:false, pourUntil:0, lastSec:null, lastInt:0});
+  $b("stage").classList.remove("done", "pour");
+  $b("bTarget").innerHTML = "0<small> g</small>";
+  $b("bPhase").textContent = "Siapkan timbangan";
+  markNodes(-1, false); setLevel(0, .5);
+}
+function closeBrew(){
+  const b = B; if(!b) return;
+  cancelAnimationFrame(b.raf);
+  try{ if(b.wake) b.wake.release(); }catch(e){}
+  B = null; ovRoot.innerHTML = ""; document.body.style.overflow = "";
+}
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(B) closeBrew(); else if(state.view === "detail" || state.view === "edit") go("list");
+});
+
+render();
+loadStore();
+</script>
