@@ -13,6 +13,66 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script type="module">
+/* Jembatan Firebase: dimuat sebagai module, hasilnya ditaruh di window.CLOUD
+   supaya skrip utama (non-module) bisa memakainya. */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
+import { getDatabase, ref, get, set, remove, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAVKXiuHoA3_HB9ZeLJ7dJEHQKFK8c4mEE",
+  authDomain: "recipe-e6af5.firebaseapp.com",
+  databaseURL: "https://recipe-e6af5-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "recipe-e6af5",
+  storageBucket: "recipe-e6af5.firebasestorage.app",
+  messagingSenderId: "758271658869",
+  appId: "1:758271658869:web:1d59ba8b3dc18bb241a13c"
+};
+
+const C = { online:false, ready:false, uid:null, err:null };
+window.CLOUD = C;
+const ping = () => window.dispatchEvent(new CustomEvent("cloud-change"));
+const clean = o => JSON.parse(JSON.stringify(o));
+
+try{
+  const app  = initializeApp(firebaseConfig);
+  const db   = getDatabase(app);
+  const auth = getAuth(app);
+  C.online = true;
+
+  C.list = async () => {
+    const snap = await get(query(ref(db, "shared"), orderByChild("updatedAt"), limitToLast(200)));
+    const val = snap.val() || {};
+    return Object.keys(val).map(k => Object.assign({key:k}, val[k]))
+                 .sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0));
+  };
+  C.fetchOne = async id => {
+    const snap = await get(ref(db, "shared/" + id));
+    return snap.exists() ? Object.assign({key:id}, snap.val()) : null;
+  };
+  C.publish = async (recipe, by) => {
+    if(!C.uid) throw new Error("Login anonim belum aktif");
+    const id = String(recipe.id).replace(/[^A-Za-z0-9_-]/g, "") + "-" + C.uid.slice(0, 6);
+    await set(ref(db, "shared/" + id), {
+      owner: C.uid,
+      by: (by || "Anonim").slice(0, 40),
+      name: String(recipe.name).slice(0, 80),
+      kind: recipe.kind,
+      updatedAt: Date.now(),
+      data: clean(recipe)
+    });
+    return id;
+  };
+  C.unpublish = async id => { await remove(ref(db, "shared/" + id)); };
+
+  onAuthStateChanged(auth, u => { C.uid = u ? u.uid : null; C.ready = !!u; ping(); });
+  signInAnonymously(auth).catch(e => { C.err = e.code || e.message; ping(); });
+}catch(e){
+  C.err = e.message || String(e);
+}
+ping();
+</script>
 <script>/* anime.js 3.2.1 (MIT) */
 /*
  * anime.js v3.2.1
@@ -1170,6 +1230,15 @@
   @keyframes fall{0%{transform:translateY(0);opacity:0}18%{opacity:1}100%{transform:translateY(22px);opacity:0}}
   @keyframes drift{from{transform:translateX(0)}to{transform:translateX(90px)}}
   .waveG{animation:drift 3.2s linear infinite}
+  .muted{color:var(--muted)}
+  .sharebox{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .sharebox code{
+    display:block;background:var(--paper);border:1px solid var(--line);border-radius:11px;
+    padding:10px 12px;font-size:12px;word-break:break-all;color:var(--muted)
+  }
+  .card > b{font-family:var(--serif);font-size:16px;font-weight:500}
+  .card > p{margin:6px 0 0;font-size:13.5px}
+  .nav button{font-size:10.5px}
   .backup{display:flex;gap:9px;margin-top:22px}
   .backup button{
     flex:1;padding:11px;border-radius:13px;border:1px solid var(--line);background:var(--card);
@@ -1233,7 +1302,7 @@ const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
 /* =========================================================
    2. STORE
    ========================================================= */
-const store = { custom:{}, deleted:[], favs:[], sound:true, interval:0, last:null };
+const store = { custom:{}, deleted:[], favs:[], sound:true, interval:0, last:null, shares:{}, author:"" };
 let dirty = false;
 
 const KEY = "resep:v2";
@@ -1314,7 +1383,8 @@ const sDone     = () => { [660, 880, 1174].forEach((f,i) => tone(f, .38, "sine",
 /* =========================================================
    5. STATE + ROUTER
    ========================================================= */
-const state = { view:"home", q:"", cat:"all", id:null, scale:{}, draft:null };
+const state = { view:"home", q:"", cat:"all", id:null, scale:{}, draft:null,
+  explore:{loading:false, items:null, err:null}, remote:{} };
 const app = document.getElementById("app");
 const ovRoot = document.getElementById("ov");
 
@@ -1329,7 +1399,9 @@ function render(){
     : v === "list" ? listView()
     : v === "notes" ? notesView()
     : v === "detail" ? detailView()
-    : v === "edit" ? editView() : homeView();
+    : v === "edit" ? editView()
+    : v === "explore" ? exploreView()
+    : v === "remote" ? remoteView() : homeView();
   app.innerHTML += navHTML(v);
   bind(v);
   if(v === "detail" || v === "edit") window.scrollTo(0, y);
@@ -1488,6 +1560,7 @@ const ICON = {
   play:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l12 7-12 7z"/></svg>',
   search:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
   bulb:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5V16h8v-2.5A6 6 0 0012 3z"/></svg>',
+  globe:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.6 2.5 14.4 0 17M12 3.5c-2.5 2.6-2.5 14.4 0 17"/></svg>',
   snd:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9a4 4 0 010 6"/></svg>'
 };
 
@@ -1719,6 +1792,7 @@ function brewDetail(r, dose){
     <button class="btn" data-brew>${ICON.play} Mulai seduh</button>
     <button class="btn ghost" data-edit>Edit</button>
   </div>
+  ${state.view === "detail" ? shareCard(r) : ""}
   <p class="foot">Semua angka menyesuaikan berat kopi di atas.</p>`;
 }
 
@@ -1738,7 +1812,8 @@ function mixDetail(r, mult){
   <div class="card"><ul class="ing">${rows(r.ing)}</ul>
     ${r.addon && r.addon.length ? `<p class="sub">Tambahan</p><ul class="ing">${rows(r.addon)}</ul>` : ""}</div>
   ${r.note ? `<div class="tip"><h4>${ICON.bulb} Catatan</h4><p>${esc(r.note)}</p></div>` : ""}
-  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit racikan</button></div>`;
+  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit racikan</button></div>
+  ${state.view === "detail" ? shareCard(r) : ""}`;
 }
 
 function noteDetail(r, g){
@@ -1754,7 +1829,127 @@ function noteDetail(r, g){
     </div>
   </div>
   ${r.note ? `<div class="tip"><h4>${ICON.bulb} Catatan</h4><p>${esc(r.note)}</p></div>` : ""}
-  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit catatan</button></div>`;
+  <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit catatan</button></div>
+  ${state.view === "detail" ? shareCard(r) : ""}`;
+}
+
+
+/* ============ berbagi & jelajah ============ */
+window.CLOUD = window.CLOUD || {online:false, ready:false, uid:null,
+  err:"SDK Firebase belum termuat, mungkin sedang offline"};
+const cloud = () => window.CLOUD || {};
+const shareLink = id => location.origin + location.pathname + "?r=" + encodeURIComponent(id);
+const tgl = ms => new Date(ms || Date.now()).toLocaleDateString("id-ID", {day:"numeric", month:"short", year:"numeric"});
+
+function shareCard(r){
+  const c = cloud(), sid = store.shares[r.id];
+  if(!c.online) return `<div class="card"><b>Bagikan resep</b>
+    <p class="muted">Server berbagi tidak bisa dihubungi${c.err ? ": " + esc(c.err) : ""}. Aplikasi tetap jalan seperti biasa.</p></div>`;
+  if(!c.ready) return `<div class="card"><b>Bagikan resep</b>
+    <p class="muted">${c.err ? "Gagal masuk: " + esc(c.err) : "Menyambung ke server berbagi..."}</p></div>`;
+  return `<div class="card">
+    <div class="opt" style="margin-top:0">
+      <span><b style="font-size:15px">Bagikan ke publik</b>
+        <span class="muted" style="display:block;font-size:12.5px;margin-top:2px">
+          ${sid ? "Aktif. Siapa pun yang punya tautan bisa membukanya." : "Resep ini masih tersimpan di perangkatmu saja."}</span></span>
+      <button class="sw ${sid ? "on" : ""}" data-share="${r.id}" aria-label="Bagikan"><i></i></button>
+    </div>
+    ${sid ? `<div class="sharebox">
+      <code>${esc(shareLink(sid))}</code>
+      <div class="cta" style="margin-top:10px">
+        <button class="btn" data-copy="${esc(shareLink(sid))}">Salin tautan</button>
+        <button class="btn ghost" data-sendlink="${esc(shareLink(sid))}">Kirim</button>
+      </div></div>` : `<div class="field" style="margin-top:12px">
+        <label>Nama yang ditampilkan saat berbagi</label>
+        <input id="f-author" value="${esc(store.author)}" placeholder="Wahyu"></div>`}
+  </div>`;
+}
+
+function exploreView(){
+  const c = cloud(), e = state.explore;
+  let body;
+  if(!c.online) body = `<p class="empty">Server berbagi tidak bisa dihubungi${c.err ? ": " + esc(c.err) : ""}.</p>`;
+  else if(e.loading || (!e.items && !e.err)) body = `<p class="empty">Memuat resep yang dibagikan...</p>`;
+  else if(e.err) body = `<p class="empty">Gagal memuat: ${esc(e.err)}</p>`;
+  else if(!e.items.length) body = `<p class="empty">Belum ada resep yang dibagikan. Jadilah yang pertama lewat tombol Bagikan di halaman resep.</p>`;
+  else body = e.items.map(it => `<button class="row" data-remote="${esc(it.key)}">
+      <span class="ic ${(it.data && it.data.tone) || ""}">${artFor(it.data || {kind:it.kind}, 31, (it.data && it.data.tone) ? "dark" : "light")}</span>
+      <span class="bd"><b>${esc(it.name)}</b>
+        <span>${kindName(it.kind)}, oleh ${esc(it.by || "Anonim")}, ${tgl(it.updatedAt)}</span></span>
+      ${it.owner === c.uid ? '<span class="star">punyamu</span>' : ""}
+    </button>`).join("");
+
+  return `<div class="wrap">
+    <div class="top"><h1 class="hello">Jelajah</h1>
+      <p class="today">Resep yang dibagikan pengguna lain. Simpan yang cocok ke buku sendiri.</p></div>
+    <div class="cta" style="margin-top:14px"><button class="btn ghost" style="flex:1" data-refresh>Muat ulang</button></div>
+    ${body}
+    <p class="foot">${e.items ? e.items.length + " resep dibagikan" : ""}</p>
+  </div>`;
+}
+
+function remoteView(){
+  const it = state.remote[state.id];
+  if(!it) return `<div class="wrap"><div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button></div>
+    <p class="empty">Memuat resep...</p></div>`;
+  const r = it.data;
+  if(state.scale[r.id] === undefined)
+    state.scale[r.id] = r.kind === "brew" ? r.dose : r.kind === "note" ? r.def : 1;
+  const v = state.scale[r.id];
+  const head = `<div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button></div>
+    <div class="head ${r.tone || ""}">
+      <span class="kind">Dibagikan oleh ${esc(it.by || "Anonim")}</span>
+      <h2>${esc(r.name)}</h2>
+      ${r.flavor ? `<p class="flavor">${esc(r.flavor)}</p>` : ""}
+      <span class="art">${artFor(r, 92, r.tone === "gold" ? "light" : "dark")}</span>
+    </div>
+    <div class="cta"><button class="btn" data-copyto="${esc(it.key)}">Simpan ke buku saya</button></div>`;
+  const body = r.kind === "brew" ? brewDetail(r, v) : r.kind === "mix" ? mixDetail(r, v) : noteDetail(r, v);
+  return `<div class="wrap">${head}${body}</div>`;
+}
+
+async function loadExplore(){
+  const c = cloud(); if(!c.list) return;
+  state.explore.loading = true; state.explore.err = null; render();
+  try{ state.explore.items = await c.list(); }
+  catch(err){ state.explore.err = err.message || String(err); }
+  state.explore.loading = false; render();
+}
+
+async function openRemote(id){
+  state.id = id; state.view = "remote"; render();
+  const c = cloud();
+  if(!c.fetchOne){ window.addEventListener("cloud-change", () => openRemote(id), {once:true}); return; }
+  try{
+    const it = await c.fetchOne(id);
+    if(it){ state.remote[id] = it; render(); }
+    else { state.remote[id] = null; alert("Resep itu sudah tidak dibagikan."); go("explore"); }
+  }catch(e){ alert("Gagal memuat resep: " + (e.message || e)); go("home"); }
+}
+
+function saveCopy(r){
+  const copy = JSON.parse(JSON.stringify(r));
+  copy.id = "u" + Date.now().toString(36);
+  store.custom[copy.id] = copy;
+  store.deleted = store.deleted.filter(x => x !== copy.id);
+  saveStore(); go("detail", copy.id);
+}
+
+async function toggleShare(id){
+  const c = cloud(), r = byId(id);
+  if(!c.ready || !r) return;
+  const sid = store.shares[id];
+  try{
+    if(sid){
+      await c.unpublish(sid);
+      delete store.shares[id];
+    }else{
+      const el = app.querySelector("#f-author");
+      if(el) store.author = el.value.trim();
+      store.shares[id] = await c.publish(r, store.author);
+    }
+    saveStore(); render();
+  }catch(e){ alert("Gagal: " + (e.message || e)); }
 }
 
 function navHTML(v){
@@ -1762,6 +1957,7 @@ function navHTML(v){
     <button data-view="home" aria-current="${v==="home"}">${ICON.home}Beranda</button>
     <button data-view="list" aria-current="${v==="list"}">${ICON.book}Resep</button>
     <button data-view="notes" aria-current="${v==="notes"}">${ICON.note}Catatan</button>
+    <button data-view="explore" aria-current="${v==="explore"}">${ICON.globe}Jelajah</button>
     <button class="fab" data-new="brew" aria-label="Tambah resep">${ICON.plus}</button>
   </div></nav>`;
 }
@@ -1967,6 +2163,24 @@ function bind(v){
     state.draft = newRecipe(b.dataset.new); go("edit");
   });
   if(v === "home") pwaStatus();
+  if(v === "explore" && !state.explore.items && !state.explore.loading && !state.explore.err) loadExplore();
+
+  app.querySelectorAll("[data-remote]").forEach(b => b.onclick = () => openRemote(b.dataset.remote));
+  const rf = app.querySelector("[data-refresh]");
+  if(rf) rf.onclick = () => loadExplore();
+  const cp = app.querySelector("[data-copyto]");
+  if(cp) cp.onclick = () => { const it = state.remote[cp.dataset.copyto]; if(it) saveCopy(it.data); };
+  app.querySelectorAll("[data-share]").forEach(b => b.onclick = () => toggleShare(b.dataset.share));
+  const cl = app.querySelector("[data-copy]");
+  if(cl) cl.onclick = async () => {
+    try{ await navigator.clipboard.writeText(cl.dataset.copy); cl.textContent = "Tautan tersalin"; }
+    catch(e){ prompt("Salin tautan ini:", cl.dataset.copy); }
+  };
+  const sl = app.querySelector("[data-sendlink]");
+  if(sl) sl.onclick = () => {
+    if(navigator.share) navigator.share({title:"Resep seduh", url:sl.dataset.sendlink}).catch(()=>{});
+    else prompt("Salin tautan ini:", sl.dataset.sendlink);
+  };
   app.querySelectorAll("[data-export]").forEach(ex => ex.onclick = () => {
     const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
@@ -1993,13 +2207,37 @@ function bind(v){
     rd.readAsText(f);
   };
   const back = app.querySelector("[data-back]");
-  if(back) back.onclick = () => go(state.view === "edit" && state.draft && state.draft.id ? "detail" : "list");
+  if(back) back.onclick = () => go(
+    state.view === "remote" ? "explore"
+    : (state.view === "edit" && state.draft && state.draft.id) ? "detail" : "list");
 
   if(v === "list"){
     const q = app.querySelector("#q");
     q.oninput = e => { state.q = e.target.value; render();
       const n = app.querySelector("#q"); n.focus(); n.setSelectionRange(n.value.length, n.value.length); };
     app.querySelectorAll("[data-cat]").forEach(c => c.onclick = () => { state.cat = c.dataset.cat; render(); });
+  }
+
+  if(v === "remote"){
+    const it = state.remote[state.id];
+    const r = it && it.data;
+    if(r){
+      app.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
+        const min = r.kind === "brew" ? 5 : 0.5;
+        state.scale[r.id] = Math.max(min, Math.round((state.scale[r.id] + parseFloat(b.dataset.d)) * 10) / 10);
+        render();
+      });
+      const bw = app.querySelector("[data-brew]");
+      if(bw) bw.onclick = () => openBrew(r);
+      app.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => saveCopy(r));
+      const nin = app.querySelector("#nin");
+      if(nin) nin.oninput = e => {
+        const g = Math.max(0, parseFloat(e.target.value) || 0);
+        state.scale[r.id] = g;
+        app.querySelector("#nout").innerHTML = r.ratios.map(x =>
+          `<span><b>${fmt(g*x.v)} g</b><span>${esc(x.lb)}</span></span>`).join("");
+      };
+    }
   }
 
   if(v === "detail"){
@@ -2330,7 +2568,13 @@ document.addEventListener("keydown", e => {
 });
 
 render();
-loadStore();
+loadStore().then(() => {
+  const rid = new URLSearchParams(location.search).get("r");
+  if(rid) openRemote(rid);
+});
+window.addEventListener("cloud-change", () => {
+  if(state.view === "detail" || state.view === "explore") render();
+});
 
 /* =========================================================
    11. PWA: pasang + service worker
