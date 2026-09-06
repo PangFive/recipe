@@ -1203,169 +1203,7 @@
 /* =========================================================
    1. DATA
    ========================================================= */
-const DEFAULTS = [
-/* ---------- seduh: arkana ---------- */
-{id:"arkana-hot", art:"switch", kind:"brew", cat:"panas", tone:"green", name:"Arkana Hario Switch — Hot", stars:3,
- dose:10, dripper:"Hario Switch", temp:"92°C", grind:"FM 10.5",
- flavor:"Clean, sweet & balanced",
- steps:[
-   {n:"Buka switch, mulai timer", at:45, pour:60, note:"biarkan terendam sampai switch ditutup"},
-   {n:"Tutup switch", at:105, pour:120, note:"kecepatan tuang ±11 g/detik"}
- ],
- finishLabel:"Swirl & buka switch", finishPs:"stir",
- finishNote:"Swirl lembut lalu buka switch sampai kopi tuntas turun",
- tips:"Swirl lembut untuk meratakan ekstraksi, lalu buka switch agar kopi tuntas turun. Cocok untuk kopi light–medium roast."},
-{id:"arkana-ice", art:"switchice", kind:"brew", cat:"dingin", tone:"blue", name:"Arkana Hario Switch — Ice", stars:3,
- dose:10, dripper:"Hario Switch", temp:"92°C", grind:"FM 9", ice:85,
- flavor:"Clean, sweet & balanced",
- steps:[
-   {n:"Buka switch, mulai timer", at:45, pour:40, note:"server sudah berisi es"},
-   {n:"Tutup switch", at:105, pour:80, note:"kecepatan tuang ±8 g/detik"}
- ],
- finishLabel:"Swirl & buka switch", finishPs:"stir",
- finishNote:"Swirl lembut lalu buka switch sampai kopi tuntas turun",
- tips:"Es 85 g + total air 120 g menghasilkan rasa seimbang dan tetap clean."},
-
-/* ---------- seduh: v60 ---------- */
-{id:"v60", kind:"brew", cat:"panas", tone:"green", name:"V60 Classic", dose:16, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:40, pour:45, note:"3 × berat kopi, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:90, pour:90, note:"2 × bloom, fast 3 set", ps:"circle"},
-  {n:"Tuang", at:120, pour:45, note:"3 × berat kopi, fast 1 set", ps:"circle"},
-  {n:"Tuang", at:160, pour:60, note:"sisa air, slow 1 set low", ps:"circle"}
- ]},
-{id:"v60imm", kind:"brew", cat:"panas", tone:"green", name:"V60 Immersion + Dripper Assist", stars:2,
- dose:15, dripper:"V60 + dripper assist", drawdown:150,
- steps:[
-  {n:"Bloom", at:40, pour:40, note:"buka valve, rasio 1:2,67"},
-  {n:"Tutup valve", at:80, pour:80, note:"rasio 1:8"},
-  {n:"Tuang", at:120, pour:100, note:"sisa air, rasio 1:15"}
- ],
- tips:"Total brew time 2:30. Kalau air belum turun habis, kasarkan gilingan sedikit."},
-{id:"v60fw", kind:"brew", cat:"panas", tone:"green", name:"V60 Full Wash", stars:1, dose:12, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:60, pour:50, note:"fast 2 set", ps:"circle"},
-  {n:"Tuang", at:100, pour:90, note:"fast 3 set", ps:"circle"},
-  {n:"Tuang", at:150, pour:60, note:"sisa air, tuang di tengah", ps:"center"}
- ]},
-{id:"v60v2", kind:"brew", cat:"panas", tone:"green", name:"V60 v2", stars:3, dose:15, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:40, pour:40, note:"rasio 1:2,67, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:90, pour:80, note:"rasio 1:8, fast 3 set", ps:"circle"},
-  {n:"Tuang", at:150, pour:100, note:"sisa air, slow 1 set low", ps:"circle"}
- ]},
-{id:"v60v5", kind:"brew", cat:"panas", tone:"green", name:"V60 v5", stars:3, dose:15, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:40, pour:40, note:"rasio 1:2,67, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:90, pour:80, note:"rasio 1:8, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:135, pour:50, note:"setengah sisa air, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:180, pour:50, note:"sisa air, slow 1 set center", ps:"center"}
- ]},
-
-/* ---------- seduh: ice japanese ---------- */
-{id:"ij", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese", dose:15, ice:90, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:30, pour:30, note:"2 × berat kopi, fast 1 set", ps:"circle"},
-  {n:"Tuang", at:80, pour:60, note:"2 × bloom, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:110, pour:30, note:"setengah sisa air, fast 1 set", ps:"circle"},
-  {n:"Tuang", at:150, pour:30, note:"sisa air, slow 1 set low", ps:"circle"}
- ]},
-{id:"ijv2", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v2 — Cafe Au Lait", dose:10, ice:70,
- iceText:"60 – 75 g", dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:30, pour:30, note:"3 × berat kopi, fast 1 set, aduk ringan", ps:"circle"},
-  {n:"Tuang", at:60, pour:40, note:"fast 2 set", ps:"circle"},
-  {n:"Tuang", at:90, pour:30, note:"3 × berat kopi, slow 1 set low, aduk memutar", ps:"circle"}
- ]},
-{id:"ijv3", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v3", dose:15, ice:90, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:30, pour:30, note:"2 × berat kopi, fast 1 set, aduk ringan", ps:"circle"},
-  {n:"Tuang", at:60, pour:60, note:"2 × bloom, fast 2 set", ps:"circle"},
-  {n:"Tuang", at:90, pour:60, note:"sisa air, slow 1 set low, aduk memutar", ps:"circle"}
- ]},
-{id:"ijv5", kind:"brew", cat:"dingin", tone:"blue", name:"Ice Japanese v5", stars:3, dose:15, ice:90, dripper:"Hario V60",
- steps:[
-  {n:"Bloom", at:40, pour:50, note:"fast 1 set, aduk ringan", ps:"circle"},
-  {n:"Tuang", at:80, pour:50, note:"fast 2 set", ps:"circle"},
-  {n:"Tuang", at:130, pour:50, note:"sisa air, slow 1 set low, aduk memutar", ps:"circle"}
- ]},
-
-/* ---------- racikan: cold brew ---------- */
-{id:"summer", kind:"mix", cat:"coldbrew", tone:"gold", name:"Summer Fling", unit:"gelas",
- ing:[{nm:"Cold brew",a:100},{nm:"Pineapple syrup",a:13},{nm:"Perasan lemon",a:5},
-      {nm:"Vanilla syrup",a:4},{nm:"Mint syrup",a:8,alt:"atau lemon syrup 8 g"}],
- addon:[{nm:"Tonic water",a:50}]},
-{id:"redflower", kind:"mix", cat:"coldbrew", tone:"red", name:"Red Flower", unit:"gelas",
- ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Strawberry jam",a:9,alt:"8 – 10 g"},
-      {nm:"Flower syrup",a:2},{nm:"Lemon syrup",a:8}],
- addon:[{nm:"Tonic water",a:50}]},
-{id:"strawmint", kind:"mix", cat:"coldbrew", tone:"red", name:"Strawberry Mint", unit:"gelas",
- ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Perasan lemon",a:5},
-      {nm:"Vanilla syrup",a:4},{nm:"Mint syrup",a:8}],
- addon:[{nm:"Tonic water",a:50}]},
-{id:"strawdried", kind:"mix", cat:"coldbrew", tone:"red", name:"Straw Dried Orange", unit:"gelas",
- ing:[{nm:"Cold brew",a:100},{nm:"Strawberry syrup",a:15},{nm:"Perasan lemon",a:5},
-      {nm:"Dried orange syrup",a:4},{nm:"Vanilla syrup",a:8}],
- addon:[{nm:"Tonic water",a:50}]},
-
-/* ---------- racikan: es kopi susu ---------- */
-{id:"gulana", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Gulana", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 36 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
-      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1,25",a:30},{nm:"Vanilla syrup",a:20}]},
-{id:"carmila", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Carmila", stars:2, unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
-      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},{nm:"Vanilla syrup",a:10},
-      {nm:"Caramel syrup",a:5},{nm:"SKM",a:5}]},
-{id:"bumi", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Bumi", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:90},
-      {nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},{nm:"Butterscotch syrup",a:10,alt:"9 – 10 g"},
-      {nm:"Caramel syrup",a:10,alt:"9 – 10 g"}]},
-{id:"tetangga", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Tetangga", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:80},
-      {nm:"Creamer 1:1",a:30},{nm:"Evaporated milk",a:20},
-      {nm:"Gula aren syrup",a:20,alt:"atau 15 g gula aren + 5 g SKM"}]},
-{id:"luar", kind:"mix", cat:"susu", tone:"gold", name:"Es Kopi Luar", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:60},
-      {nm:"Oat milk",a:30},{nm:"Evaporated milk",a:10},{nm:"Creamer 1:1",a:30},
-      {nm:"Gula aren syrup",a:20,alt:"atau 10 g gula aren + 5 g vanilla + 5 g SKM"}]},
-{id:"kopistraw", art:"latte", kind:"mix", cat:"susu", tone:"red", name:"Es Kopi Strawberry", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:110},
-      {nm:"SKM",a:10},{nm:"Creamer 1:1",a:20},{nm:"Strawberry syrup",a:19,alt:"18 – 20 g"}]},
-{id:"spanish", kind:"mix", cat:"susu", tone:"gold", name:"Es Spanish Latte", unit:"gelas",
- ing:[{nm:"Espresso",a:33,alt:"30 – 37 g, atau Nescafe 3 g dilarutkan jadi 36 g"},{nm:"Fresh milk",a:100},
-      {nm:"Creamer",a:20},{nm:"SKM",a:24,alt:"18 – 30 g"}]},
-
-/* ---------- racikan: teh, mojito, sirup ---------- */
-{id:"tehgelas", art:"teh", kind:"mix", cat:"teh", tone:"green", name:"Teh Tarik per Gelas", unit:"gelas",
- ing:[{nm:"Konsentrat teh",a:200},{nm:"Susu",a:45,alt:"rasio 1:4,5 dari teh"},
-      {nm:"Creamer",a:15,alt:"rasio 1:15 dari teh"}],
- note:"Konsentrat teh diseduh dengan rasio bubuk teh : air = 1:15 sampai 1:20."},
-{id:"tehliter", art:"teapot", kind:"mix", cat:"teh", tone:"green", name:"Teh Tarik 1 Liter", unit:"batch",
- ing:[{nm:"Bubuk teh",a:100,alt:"80 – 120 g"},{nm:"Creamer",a:80},{nm:"Susu",a:270},{nm:"Air",a:1200}]},
-{id:"mojito", art:"mojito", kind:"mix", cat:"teh", tone:"green", name:"Strawberry Mojito", unit:"gelas",
- ing:[{nm:"Tonic water",a:150},{nm:"Strawberry syrup",a:10},{nm:"Mint syrup",a:5},
-      {nm:"Lemon syrup",a:10},{nm:"Perasan lemon",a:5}]},
-{id:"strawsyrup", art:"pan", kind:"mix", cat:"sirup", tone:"red", name:"Strawberry Syrup", unit:"batch",
- ing:[{nm:"Strawberry",a:300},{nm:"Gula",a:100},{nm:"Vanilla",a:10},{nm:"Perasan lemon",a:5}],
- note:"Masak 5 – 10 menit."},
-{id:"caramelsyrup", art:"bottle", kind:"mix", cat:"sirup", tone:"gold", name:"Caramel Syrup", unit:"batch",
- ing:[{nm:"Gula",a:200},{nm:"Air",a:200},{nm:"Vanilla syrup",a:40}]},
-{id:"caramelsauce", art:"pan", kind:"mix", cat:"sirup", tone:"gold", name:"Caramel Sauce", unit:"batch",
- ing:[{nm:"Gula",a:200},{nm:"Air",a:70},{nm:"Cream",a:150},{nm:"Butter",a:50},{nm:"Vanilla syrup",a:40}]},
-
-/* ---------- catatan ---------- */
-{id:"n-coldbrew", kind:"note", tone:"blue", name:"Konsentrat Cold Brew", basis:"kopi", def:100,
- ratios:[{lb:"Air, rasio 1:8",v:8},{lb:"Air, rasio 1:9",v:9}],
- note:"Rendam, saring, simpan di kulkas. Dipakai 100 g per gelas racikan cold brew."},
-{id:"n-espresso", art:"espresso", kind:"note", tone:"green", name:"Konsentrat Espresso", basis:"kopi", def:18,
- ratios:[{lb:"Air, rasio 1:2",v:2}],
- note:"Setara double shot untuk seri es kopi susu."},
-{id:"n-creamer", art:"bottle", kind:"note", tone:"gold", name:"Larutan Creamer", basis:"bubuk creamer", def:100,
- ratios:[{lb:"Air, rasio 1:1",v:1},{lb:"Air, rasio 1:1,25",v:1.25}]},
-{id:"n-teh", art:"teapot", kind:"note", tone:"green", name:"Konsentrat Teh", basis:"bubuk teh", def:80,
- ratios:[{lb:"Air, rasio 1:15",v:15},{lb:"Air, rasio 1:20",v:20}]}
-];
-
+const DEFAULTS = [];
 
 /* jenis tuangan */
 const POURS = {
@@ -1387,6 +1225,7 @@ function pourChip(st, cls){
   const p = pourOf(st); if(!p) return "";
   return `<span class="pchip ${cls||""} ${p.spin?"sp":""}">${p.ic}${p.lb}</span>`;
 }
+
 
 const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
               coldbrew:"Cold brew", teh:"Teh & mojito", sirup:"Sirup"};
@@ -1681,6 +1520,13 @@ function homeView(){
       <h1 class="hello">${greeting()},<br>Wahyu</h1>
       <p class="today">${todayText()}</p>
     </div>
+
+    ${all.length ? "" : `<div class="tile sand" style="margin-top:16px;padding:18px">
+      <span class="t-lbl">Mulai di sini</span>
+      <h2 class="serif" style="font-size:21px;font-weight:500;margin-top:7px">Buku resep masih kosong</h2>
+      <p style="color:var(--muted);font-size:13.5px;margin:7px 0 0">Impor file cadangan resep, atau susun resep pertamamu dari nol lewat tombol di bawah.</p>
+      <div class="cta"><button class="btn" data-import>Impor file JSON</button></div>
+    </div>`}
 
     <div class="bento">
       ${pick ? `<button class="tile ${pick.tone === "blue" ? "blue" : "green"} span2 hero" data-open="${pick.id}">
@@ -2121,16 +1967,14 @@ function bind(v){
     state.draft = newRecipe(b.dataset.new); go("edit");
   });
   if(v === "home") pwaStatus();
-  const ex = app.querySelector("[data-export]");
-  if(ex) ex.onclick = () => {
+  app.querySelectorAll("[data-export]").forEach(ex => ex.onclick = () => {
     const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "resep-seduh-" + new Date().toISOString().slice(0,10) + ".json";
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  };
-  const im = app.querySelector("[data-import]");
-  if(im) im.onclick = () => app.querySelector("#fimp").click();
+  });
+  app.querySelectorAll("[data-import]").forEach(im => im.onclick = () => app.querySelector("#fimp").click());
   const fi = app.querySelector("#fimp");
   if(fi) fi.onchange = e => {
     const f = e.target.files[0]; if(!f) return;
