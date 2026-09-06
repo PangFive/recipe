@@ -66,8 +66,9 @@ try{
   };
   C.unpublish = async id => { await remove(ref(db, "shared/" + id)); };
 
-  onAuthStateChanged(auth, u => { C.uid = u ? u.uid : null; C.ready = !!u; ping(); });
-  signInAnonymously(auth).catch(e => { C.err = e.code || e.message; ping(); });
+  onAuthStateChanged(auth, u => { C.uid = u ? u.uid : null; C.ready = !!u; if(u) C.err = null; ping(); });
+  C.retry = () => { C.err = null; ping(); signInAnonymously(auth).catch(e => { C.err = e.code || e.message; ping(); }); };
+  C.retry();
 }catch(e){
   C.err = e.message || String(e);
 }
@@ -1075,6 +1076,10 @@ ping();
   .row b{display:block;font-family:var(--serif);font-size:16.5px;font-weight:500}
   .row span{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
   .row .star{color:var(--gold);flex:none;font-size:13px}
+  .row .mine{
+    flex:none;align-self:flex-start;font-size:11px;font-weight:600;padding:4px 9px;
+    border-radius:999px;background:var(--sand);color:var(--muted);white-space:nowrap
+  }
   .empty{color:var(--muted);text-align:center;padding:34px 10px;font-size:14px}
 
   /* ---------- detail ---------- */
@@ -1838,15 +1843,24 @@ function noteDetail(r, g){
 window.CLOUD = window.CLOUD || {online:false, ready:false, uid:null,
   err:"SDK Firebase belum termuat, mungkin sedang offline"};
 const cloud = () => window.CLOUD || {};
+const CLOUD_ERR = {
+  "auth/configuration-not-found": "Login anonim belum diaktifkan. Buka Firebase Console, menu Authentication, tab Sign-in method, lalu aktifkan Anonymous.",
+  "auth/operation-not-allowed": "Login anonim masih dimatikan di Firebase Console, aktifkan lewat Authentication, Sign-in method, Anonymous.",
+  "auth/unauthorized-domain": "Domain ini belum terdaftar. Tambahkan di Authentication, Settings, Authorized domains.",
+  "auth/network-request-failed": "Tidak ada koneksi ke server Firebase.",
+  "auth/admin-restricted-operation": "Login anonim ditolak oleh pengaturan proyek."
+};
+const errText = e => (e && CLOUD_ERR[e]) || (e ? String(e) : "");
 const shareLink = id => location.origin + location.pathname + "?r=" + encodeURIComponent(id);
 const tgl = ms => new Date(ms || Date.now()).toLocaleDateString("id-ID", {day:"numeric", month:"short", year:"numeric"});
 
 function shareCard(r){
   const c = cloud(), sid = store.shares[r.id];
   if(!c.online) return `<div class="card"><b>Bagikan resep</b>
-    <p class="muted">Server berbagi tidak bisa dihubungi${c.err ? ": " + esc(c.err) : ""}. Aplikasi tetap jalan seperti biasa.</p></div>`;
+    <p class="muted">Server berbagi tidak bisa dihubungi. ${esc(errText(c.err))} Aplikasi tetap jalan seperti biasa.</p></div>`;
   if(!c.ready) return `<div class="card"><b>Bagikan resep</b>
-    <p class="muted">${c.err ? "Gagal masuk: " + esc(c.err) : "Menyambung ke server berbagi..."}</p></div>`;
+    <p class="muted">${c.err ? esc(errText(c.err)) : "Menyambung ke server berbagi..."}</p>
+    ${c.err ? '<div class="cta"><button class="btn ghost" style="flex:1" data-retryauth>Coba lagi</button></div>' : ""}</div>`;
   return `<div class="card">
     <div class="opt" style="margin-top:0">
       <span><b style="font-size:15px">Bagikan ke publik</b>
@@ -1868,21 +1882,21 @@ function shareCard(r){
 function exploreView(){
   const c = cloud(), e = state.explore;
   let body;
-  if(!c.online) body = `<p class="empty">Server berbagi tidak bisa dihubungi${c.err ? ": " + esc(c.err) : ""}.</p>`;
+  if(!c.online) body = `<p class="empty">Server berbagi tidak bisa dihubungi. ${esc(errText(c.err))}</p>`;
   else if(e.loading || (!e.items && !e.err)) body = `<p class="empty">Memuat resep yang dibagikan...</p>`;
-  else if(e.err) body = `<p class="empty">Gagal memuat: ${esc(e.err)}</p>`;
+  else if(e.err) body = `<p class="empty">Gagal memuat: ${esc(errText(e.err))}</p>`;
   else if(!e.items.length) body = `<p class="empty">Belum ada resep yang dibagikan. Jadilah yang pertama lewat tombol Bagikan di halaman resep.</p>`;
   else body = e.items.map(it => `<button class="row" data-remote="${esc(it.key)}">
       <span class="ic ${(it.data && it.data.tone) || ""}">${artFor(it.data || {kind:it.kind}, 31, (it.data && it.data.tone) ? "dark" : "light")}</span>
       <span class="bd"><b>${esc(it.name)}</b>
         <span>${kindName(it.kind)}, oleh ${esc(it.by || "Anonim")}, ${tgl(it.updatedAt)}</span></span>
-      ${it.owner === c.uid ? '<span class="star">punyamu</span>' : ""}
+      ${it.owner === c.uid ? '<span class="mine">punyamu</span>' : ""}
     </button>`).join("");
 
   return `<div class="wrap">
     <div class="top"><h1 class="hello">Jelajah</h1>
       <p class="today">Resep yang dibagikan pengguna lain. Simpan yang cocok ke buku sendiri.</p></div>
-    <div class="cta" style="margin-top:14px"><button class="btn ghost" style="flex:1" data-refresh>Muat ulang</button></div>
+    <div class="cta" style="margin:16px 0 20px"><button class="btn ghost" style="flex:1" data-refresh>Muat ulang</button></div>
     ${body}
     <p class="foot">${e.items ? e.items.length + " resep dibagikan" : ""}</p>
   </div>`;
@@ -2171,6 +2185,8 @@ function bind(v){
   const cp = app.querySelector("[data-copyto]");
   if(cp) cp.onclick = () => { const it = state.remote[cp.dataset.copyto]; if(it) saveCopy(it.data); };
   app.querySelectorAll("[data-share]").forEach(b => b.onclick = () => toggleShare(b.dataset.share));
+  const ra = app.querySelector("[data-retryauth]");
+  if(ra) ra.onclick = () => { ra.textContent = "Mencoba..."; if(cloud().retry) cloud().retry(); };
   const cl = app.querySelector("[data-copy]");
   if(cl) cl.onclick = async () => {
     try{ await navigator.clipboard.writeText(cl.dataset.copy); cl.textContent = "Tautan tersalin"; }
