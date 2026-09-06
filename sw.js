@@ -1,84 +1,62 @@
 /* Buku Resep Seduh — service worker
-   Naikkan nomor VERSI setiap kali isi aplikasi diubah,
-   supaya perangkat mengambil versi terbaru. */
-const VERSION = "resep-seduh-v1";
-const SHELL = VERSION + "-shell";
-const RUNTIME = VERSION + "-runtime";
+   Naikkan VERSION setiap kali index.html diubah. */
+const VERSION = "resep-seduh-v3";
+const CACHE = VERSION;
 
 const ASSETS = [
   "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./assets/anime.min.js",
-  "./assets/confetti.min.js",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/maskable-512.png",
-  "./icons/apple-touch-icon.png",
-  "./icons/favicon-32.png"
+  "index.html",
+  "manifest.webmanifest",
+  "icon-192.png",
+  "icon-512.png",
+  "icon-maskable-512.png"
 ];
 
 self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open(SHELL)
-      .then(c => c.addAll(ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    // Satu file yang hilang tidak boleh menggagalkan pemasangan.
+    await Promise.all(ASSETS.map(u => c.add(u).catch(() => {})));
+    self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", e => {
-  e.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== SHELL && k !== RUNTIME).map(k => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener("fetch", e => {
   const req = e.request;
   if(req.method !== "GET") return;
 
-  // Halaman: coba jaringan dulu, jatuh ke cache kalau offline.
+  // Halaman: jaringan dulu, cache kalau offline.
   if(req.mode === "navigate"){
-    e.respondWith(
-      fetch(req)
-        .then(res => {
-          const copy = res.clone();
-          caches.open(SHELL).then(c => c.put("./index.html", copy));
-          return res;
-        })
-        .catch(() => caches.match("./index.html", {ignoreSearch: true}))
-    );
+    e.respondWith((async () => {
+      try{
+        const res = await fetch(req);
+        const c = await caches.open(CACHE);
+        c.put("index.html", res.clone());
+        return res;
+      }catch(err){
+        return (await caches.match("index.html", {ignoreSearch: true})) || Response.error();
+      }
+    })());
     return;
   }
 
-  const sameOrigin = new URL(req.url).origin === self.location.origin;
-
-  // Aset sendiri: cache dulu, perbarui di latar belakang.
-  if(sameOrigin){
-    e.respondWith(
-      caches.match(req).then(hit => {
-        const net = fetch(req).then(res => {
-          if(res && res.status === 200){
-            const copy = res.clone();
-            caches.open(SHELL).then(c => c.put(req, copy));
-          }
-          return res;
-        }).catch(() => hit);
-        return hit || net;
-      })
-    );
-    return;
-  }
-
-  // Font Google dan sumber luar lain: pakai cache kalau ada, simpan kalau berhasil.
-  e.respondWith(
-    caches.match(req).then(hit => hit || fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(RUNTIME).then(c => c.put(req, copy));
+  // Sisanya: pakai cache kalau ada, sambil perbarui di latar.
+  e.respondWith((async () => {
+    const hit = await caches.match(req);
+    const net = fetch(req).then(res => {
+      if(res && res.status === 200 && res.type !== "opaque"){
+        caches.open(CACHE).then(c => c.put(req, res.clone()));
+      }
       return res;
-    }).catch(() => hit))
-  );
+    }).catch(() => hit);
+    return hit || net;
+  })());
 });

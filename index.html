@@ -1,11 +1,918 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Buku Resep Seduh</title>
+<meta name="description" content="Buku resep manual brew, racikan kopi susu, dan catatan rasio dengan timer seduh.">
+<meta name="theme-color" content="#2F3B26">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Resep Seduh">
+<meta name="mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+<script>/* anime.js 3.2.1 (MIT) */
+/*
+ * anime.js v3.2.1
+ * (c) 2020 Julian Garnier
+ * Released under the MIT license
+ * animejs.com
+ */
+
+!function(n,e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define(e):n.anime=e()}(this,function(){"use strict";var n={update:null,begin:null,loopBegin:null,changeBegin:null,change:null,changeComplete:null,loopComplete:null,complete:null,loop:1,direction:"normal",autoplay:!0,timelineOffset:0},e={duration:1e3,delay:0,endDelay:0,easing:"easeOutElastic(1, .5)",round:0},t=["translateX","translateY","translateZ","rotate","rotateX","rotateY","rotateZ","scale","scaleX","scaleY","scaleZ","skew","skewX","skewY","perspective","matrix","matrix3d"],r={CSS:{},springs:{}};function a(n,e,t){return Math.min(Math.max(n,e),t)}function o(n,e){return n.indexOf(e)>-1}function u(n,e){return n.apply(null,e)}var i={arr:function(n){return Array.isArray(n)},obj:function(n){return o(Object.prototype.toString.call(n),"Object")},pth:function(n){return i.obj(n)&&n.hasOwnProperty("totalLength")},svg:function(n){return n instanceof SVGElement},inp:function(n){return n instanceof HTMLInputElement},dom:function(n){return n.nodeType||i.svg(n)},str:function(n){return"string"==typeof n},fnc:function(n){return"function"==typeof n},und:function(n){return void 0===n},nil:function(n){return i.und(n)||null===n},hex:function(n){return/(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(n)},rgb:function(n){return/^rgb/.test(n)},hsl:function(n){return/^hsl/.test(n)},col:function(n){return i.hex(n)||i.rgb(n)||i.hsl(n)},key:function(t){return!n.hasOwnProperty(t)&&!e.hasOwnProperty(t)&&"targets"!==t&&"keyframes"!==t}};function c(n){var e=/\(([^)]+)\)/.exec(n);return e?e[1].split(",").map(function(n){return parseFloat(n)}):[]}function s(n,e){var t=c(n),o=a(i.und(t[0])?1:t[0],.1,100),u=a(i.und(t[1])?100:t[1],.1,100),s=a(i.und(t[2])?10:t[2],.1,100),f=a(i.und(t[3])?0:t[3],.1,100),l=Math.sqrt(u/o),d=s/(2*Math.sqrt(u*o)),p=d<1?l*Math.sqrt(1-d*d):0,v=1,h=d<1?(d*l-f)/p:-f+l;function g(n){var t=e?e*n/1e3:n;return t=d<1?Math.exp(-t*d*l)*(v*Math.cos(p*t)+h*Math.sin(p*t)):(v+h*t)*Math.exp(-t*l),0===n||1===n?n:1-t}return e?g:function(){var e=r.springs[n];if(e)return e;for(var t=0,a=0;;)if(1===g(t+=1/6)){if(++a>=16)break}else a=0;var o=t*(1/6)*1e3;return r.springs[n]=o,o}}function f(n){return void 0===n&&(n=10),function(e){return Math.ceil(a(e,1e-6,1)*n)*(1/n)}}var l,d,p=function(){var n=11,e=1/(n-1);function t(n,e){return 1-3*e+3*n}function r(n,e){return 3*e-6*n}function a(n){return 3*n}function o(n,e,o){return((t(e,o)*n+r(e,o))*n+a(e))*n}function u(n,e,o){return 3*t(e,o)*n*n+2*r(e,o)*n+a(e)}return function(t,r,a,i){if(0<=t&&t<=1&&0<=a&&a<=1){var c=new Float32Array(n);if(t!==r||a!==i)for(var s=0;s<n;++s)c[s]=o(s*e,t,a);return function(n){return t===r&&a===i?n:0===n||1===n?n:o(f(n),r,i)}}function f(r){for(var i=0,s=1,f=n-1;s!==f&&c[s]<=r;++s)i+=e;var l=i+(r-c[--s])/(c[s+1]-c[s])*e,d=u(l,t,a);return d>=.001?function(n,e,t,r){for(var a=0;a<4;++a){var i=u(e,t,r);if(0===i)return e;e-=(o(e,t,r)-n)/i}return e}(r,l,t,a):0===d?l:function(n,e,t,r,a){for(var u,i,c=0;(u=o(i=e+(t-e)/2,r,a)-n)>0?t=i:e=i,Math.abs(u)>1e-7&&++c<10;);return i}(r,i,i+e,t,a)}}}(),v=(l={linear:function(){return function(n){return n}}},d={Sine:function(){return function(n){return 1-Math.cos(n*Math.PI/2)}},Circ:function(){return function(n){return 1-Math.sqrt(1-n*n)}},Back:function(){return function(n){return n*n*(3*n-2)}},Bounce:function(){return function(n){for(var e,t=4;n<((e=Math.pow(2,--t))-1)/11;);return 1/Math.pow(4,3-t)-7.5625*Math.pow((3*e-2)/22-n,2)}},Elastic:function(n,e){void 0===n&&(n=1),void 0===e&&(e=.5);var t=a(n,1,10),r=a(e,.1,2);return function(n){return 0===n||1===n?n:-t*Math.pow(2,10*(n-1))*Math.sin((n-1-r/(2*Math.PI)*Math.asin(1/t))*(2*Math.PI)/r)}}},["Quad","Cubic","Quart","Quint","Expo"].forEach(function(n,e){d[n]=function(){return function(n){return Math.pow(n,e+2)}}}),Object.keys(d).forEach(function(n){var e=d[n];l["easeIn"+n]=e,l["easeOut"+n]=function(n,t){return function(r){return 1-e(n,t)(1-r)}},l["easeInOut"+n]=function(n,t){return function(r){return r<.5?e(n,t)(2*r)/2:1-e(n,t)(-2*r+2)/2}},l["easeOutIn"+n]=function(n,t){return function(r){return r<.5?(1-e(n,t)(1-2*r))/2:(e(n,t)(2*r-1)+1)/2}}}),l);function h(n,e){if(i.fnc(n))return n;var t=n.split("(")[0],r=v[t],a=c(n);switch(t){case"spring":return s(n,e);case"cubicBezier":return u(p,a);case"steps":return u(f,a);default:return u(r,a)}}function g(n){try{return document.querySelectorAll(n)}catch(n){return}}function m(n,e){for(var t=n.length,r=arguments.length>=2?arguments[1]:void 0,a=[],o=0;o<t;o++)if(o in n){var u=n[o];e.call(r,u,o,n)&&a.push(u)}return a}function y(n){return n.reduce(function(n,e){return n.concat(i.arr(e)?y(e):e)},[])}function b(n){return i.arr(n)?n:(i.str(n)&&(n=g(n)||n),n instanceof NodeList||n instanceof HTMLCollection?[].slice.call(n):[n])}function M(n,e){return n.some(function(n){return n===e})}function x(n){var e={};for(var t in n)e[t]=n[t];return e}function w(n,e){var t=x(n);for(var r in n)t[r]=e.hasOwnProperty(r)?e[r]:n[r];return t}function k(n,e){var t=x(n);for(var r in e)t[r]=i.und(n[r])?e[r]:n[r];return t}function O(n){return i.rgb(n)?(t=/rgb\((\d+,\s*[\d]+,\s*[\d]+)\)/g.exec(e=n))?"rgba("+t[1]+",1)":e:i.hex(n)?(r=n.replace(/^#?([a-f\d])([a-f\d])([a-f\d])$/i,function(n,e,t,r){return e+e+t+t+r+r}),a=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(r),"rgba("+parseInt(a[1],16)+","+parseInt(a[2],16)+","+parseInt(a[3],16)+",1)"):i.hsl(n)?function(n){var e,t,r,a=/hsl\((\d+),\s*([\d.]+)%,\s*([\d.]+)%\)/g.exec(n)||/hsla\((\d+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)/g.exec(n),o=parseInt(a[1],10)/360,u=parseInt(a[2],10)/100,i=parseInt(a[3],10)/100,c=a[4]||1;function s(n,e,t){return t<0&&(t+=1),t>1&&(t-=1),t<1/6?n+6*(e-n)*t:t<.5?e:t<2/3?n+(e-n)*(2/3-t)*6:n}if(0==u)e=t=r=i;else{var f=i<.5?i*(1+u):i+u-i*u,l=2*i-f;e=s(l,f,o+1/3),t=s(l,f,o),r=s(l,f,o-1/3)}return"rgba("+255*e+","+255*t+","+255*r+","+c+")"}(n):void 0;var e,t,r,a}function C(n){var e=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?(%|px|pt|em|rem|in|cm|mm|ex|ch|pc|vw|vh|vmin|vmax|deg|rad|turn)?$/.exec(n);if(e)return e[1]}function P(n,e){return i.fnc(n)?n(e.target,e.id,e.total):n}function I(n,e){return n.getAttribute(e)}function D(n,e,t){if(M([t,"deg","rad","turn"],C(e)))return e;var a=r.CSS[e+t];if(!i.und(a))return a;var o=document.createElement(n.tagName),u=n.parentNode&&n.parentNode!==document?n.parentNode:document.body;u.appendChild(o),o.style.position="absolute",o.style.width=100+t;var c=100/o.offsetWidth;u.removeChild(o);var s=c*parseFloat(e);return r.CSS[e+t]=s,s}function B(n,e,t){if(e in n.style){var r=e.replace(/([a-z])([A-Z])/g,"$1-$2").toLowerCase(),a=n.style[e]||getComputedStyle(n).getPropertyValue(r)||"0";return t?D(n,a,t):a}}function T(n,e){return i.dom(n)&&!i.inp(n)&&(!i.nil(I(n,e))||i.svg(n)&&n[e])?"attribute":i.dom(n)&&M(t,e)?"transform":i.dom(n)&&"transform"!==e&&B(n,e)?"css":null!=n[e]?"object":void 0}function E(n){if(i.dom(n)){for(var e,t=n.style.transform||"",r=/(\w+)\(([^)]*)\)/g,a=new Map;e=r.exec(t);)a.set(e[1],e[2]);return a}}function F(n,e,t,r){var a,u=o(e,"scale")?1:0+(o(a=e,"translate")||"perspective"===a?"px":o(a,"rotate")||o(a,"skew")?"deg":void 0),i=E(n).get(e)||u;return t&&(t.transforms.list.set(e,i),t.transforms.last=e),r?D(n,i,r):i}function A(n,e,t,r){switch(T(n,e)){case"transform":return F(n,e,r,t);case"css":return B(n,e,t);case"attribute":return I(n,e);default:return n[e]||0}}function N(n,e){var t=/^(\*=|\+=|-=)/.exec(n);if(!t)return n;var r=C(n)||0,a=parseFloat(e),o=parseFloat(n.replace(t[0],""));switch(t[0][0]){case"+":return a+o+r;case"-":return a-o+r;case"*":return a*o+r}}function S(n,e){if(i.col(n))return O(n);if(/\s/g.test(n))return n;var t=C(n),r=t?n.substr(0,n.length-t.length):n;return e?r+e:r}function L(n,e){return Math.sqrt(Math.pow(e.x-n.x,2)+Math.pow(e.y-n.y,2))}function j(n){for(var e,t=n.points,r=0,a=0;a<t.numberOfItems;a++){var o=t.getItem(a);a>0&&(r+=L(e,o)),e=o}return r}function q(n){if(n.getTotalLength)return n.getTotalLength();switch(n.tagName.toLowerCase()){case"circle":return o=n,2*Math.PI*I(o,"r");case"rect":return 2*I(a=n,"width")+2*I(a,"height");case"line":return L({x:I(r=n,"x1"),y:I(r,"y1")},{x:I(r,"x2"),y:I(r,"y2")});case"polyline":return j(n);case"polygon":return t=(e=n).points,j(e)+L(t.getItem(t.numberOfItems-1),t.getItem(0))}var e,t,r,a,o}function H(n,e){var t=e||{},r=t.el||function(n){for(var e=n.parentNode;i.svg(e)&&i.svg(e.parentNode);)e=e.parentNode;return e}(n),a=r.getBoundingClientRect(),o=I(r,"viewBox"),u=a.width,c=a.height,s=t.viewBox||(o?o.split(" "):[0,0,u,c]);return{el:r,viewBox:s,x:s[0]/1,y:s[1]/1,w:u,h:c,vW:s[2],vH:s[3]}}function V(n,e,t){function r(t){void 0===t&&(t=0);var r=e+t>=1?e+t:0;return n.el.getPointAtLength(r)}var a=H(n.el,n.svg),o=r(),u=r(-1),i=r(1),c=t?1:a.w/a.vW,s=t?1:a.h/a.vH;switch(n.property){case"x":return(o.x-a.x)*c;case"y":return(o.y-a.y)*s;case"angle":return 180*Math.atan2(i.y-u.y,i.x-u.x)/Math.PI}}function $(n,e){var t=/[+-]?\d*\.?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g,r=S(i.pth(n)?n.totalLength:n,e)+"";return{original:r,numbers:r.match(t)?r.match(t).map(Number):[0],strings:i.str(n)||e?r.split(t):[]}}function W(n){return m(n?y(i.arr(n)?n.map(b):b(n)):[],function(n,e,t){return t.indexOf(n)===e})}function X(n){var e=W(n);return e.map(function(n,t){return{target:n,id:t,total:e.length,transforms:{list:E(n)}}})}function Y(n,e){var t=x(e);if(/^spring/.test(t.easing)&&(t.duration=s(t.easing)),i.arr(n)){var r=n.length;2===r&&!i.obj(n[0])?n={value:n}:i.fnc(e.duration)||(t.duration=e.duration/r)}var a=i.arr(n)?n:[n];return a.map(function(n,t){var r=i.obj(n)&&!i.pth(n)?n:{value:n};return i.und(r.delay)&&(r.delay=t?0:e.delay),i.und(r.endDelay)&&(r.endDelay=t===a.length-1?e.endDelay:0),r}).map(function(n){return k(n,t)})}function Z(n,e){var t=[],r=e.keyframes;for(var a in r&&(e=k(function(n){for(var e=m(y(n.map(function(n){return Object.keys(n)})),function(n){return i.key(n)}).reduce(function(n,e){return n.indexOf(e)<0&&n.push(e),n},[]),t={},r=function(r){var a=e[r];t[a]=n.map(function(n){var e={};for(var t in n)i.key(t)?t==a&&(e.value=n[t]):e[t]=n[t];return e})},a=0;a<e.length;a++)r(a);return t}(r),e)),e)i.key(a)&&t.push({name:a,tweens:Y(e[a],n)});return t}function G(n,e){var t;return n.tweens.map(function(r){var a=function(n,e){var t={};for(var r in n){var a=P(n[r],e);i.arr(a)&&1===(a=a.map(function(n){return P(n,e)})).length&&(a=a[0]),t[r]=a}return t.duration=parseFloat(t.duration),t.delay=parseFloat(t.delay),t}(r,e),o=a.value,u=i.arr(o)?o[1]:o,c=C(u),s=A(e.target,n.name,c,e),f=t?t.to.original:s,l=i.arr(o)?o[0]:f,d=C(l)||C(s),p=c||d;return i.und(u)&&(u=f),a.from=$(l,p),a.to=$(N(u,l),p),a.start=t?t.end:0,a.end=a.start+a.delay+a.duration+a.endDelay,a.easing=h(a.easing,a.duration),a.isPath=i.pth(o),a.isPathTargetInsideSVG=a.isPath&&i.svg(e.target),a.isColor=i.col(a.from.original),a.isColor&&(a.round=1),t=a,a})}var Q={css:function(n,e,t){return n.style[e]=t},attribute:function(n,e,t){return n.setAttribute(e,t)},object:function(n,e,t){return n[e]=t},transform:function(n,e,t,r,a){if(r.list.set(e,t),e===r.last||a){var o="";r.list.forEach(function(n,e){o+=e+"("+n+") "}),n.style.transform=o}}};function z(n,e){X(n).forEach(function(n){for(var t in e){var r=P(e[t],n),a=n.target,o=C(r),u=A(a,t,o,n),i=N(S(r,o||C(u)),u),c=T(a,t);Q[c](a,t,i,n.transforms,!0)}})}function _(n,e){return m(y(n.map(function(n){return e.map(function(e){return function(n,e){var t=T(n.target,e.name);if(t){var r=G(e,n),a=r[r.length-1];return{type:t,property:e.name,animatable:n,tweens:r,duration:a.end,delay:r[0].delay,endDelay:a.endDelay}}}(n,e)})})),function(n){return!i.und(n)})}function R(n,e){var t=n.length,r=function(n){return n.timelineOffset?n.timelineOffset:0},a={};return a.duration=t?Math.max.apply(Math,n.map(function(n){return r(n)+n.duration})):e.duration,a.delay=t?Math.min.apply(Math,n.map(function(n){return r(n)+n.delay})):e.delay,a.endDelay=t?a.duration-Math.max.apply(Math,n.map(function(n){return r(n)+n.duration-n.endDelay})):e.endDelay,a}var J=0;var K=[],U=function(){var n;function e(t){for(var r=K.length,a=0;a<r;){var o=K[a];o.paused?(K.splice(a,1),r--):(o.tick(t),a++)}n=a>0?requestAnimationFrame(e):void 0}return"undefined"!=typeof document&&document.addEventListener("visibilitychange",function(){en.suspendWhenDocumentHidden&&(nn()?n=cancelAnimationFrame(n):(K.forEach(function(n){return n._onDocumentVisibility()}),U()))}),function(){n||nn()&&en.suspendWhenDocumentHidden||!(K.length>0)||(n=requestAnimationFrame(e))}}();function nn(){return!!document&&document.hidden}function en(t){void 0===t&&(t={});var r,o=0,u=0,i=0,c=0,s=null;function f(n){var e=window.Promise&&new Promise(function(n){return s=n});return n.finished=e,e}var l,d,p,v,h,g,y,b,M=(d=w(n,l=t),p=w(e,l),v=Z(p,l),h=X(l.targets),g=_(h,v),y=R(g,p),b=J,J++,k(d,{id:b,children:[],animatables:h,animations:g,duration:y.duration,delay:y.delay,endDelay:y.endDelay}));f(M);function x(){var n=M.direction;"alternate"!==n&&(M.direction="normal"!==n?"normal":"reverse"),M.reversed=!M.reversed,r.forEach(function(n){return n.reversed=M.reversed})}function O(n){return M.reversed?M.duration-n:n}function C(){o=0,u=O(M.currentTime)*(1/en.speed)}function P(n,e){e&&e.seek(n-e.timelineOffset)}function I(n){for(var e=0,t=M.animations,r=t.length;e<r;){var o=t[e],u=o.animatable,i=o.tweens,c=i.length-1,s=i[c];c&&(s=m(i,function(e){return n<e.end})[0]||s);for(var f=a(n-s.start-s.delay,0,s.duration)/s.duration,l=isNaN(f)?1:s.easing(f),d=s.to.strings,p=s.round,v=[],h=s.to.numbers.length,g=void 0,y=0;y<h;y++){var b=void 0,x=s.to.numbers[y],w=s.from.numbers[y]||0;b=s.isPath?V(s.value,l*x,s.isPathTargetInsideSVG):w+l*(x-w),p&&(s.isColor&&y>2||(b=Math.round(b*p)/p)),v.push(b)}var k=d.length;if(k){g=d[0];for(var O=0;O<k;O++){d[O];var C=d[O+1],P=v[O];isNaN(P)||(g+=C?P+C:P+" ")}}else g=v[0];Q[o.type](u.target,o.property,g,u.transforms),o.currentValue=g,e++}}function D(n){M[n]&&!M.passThrough&&M[n](M)}function B(n){var e=M.duration,t=M.delay,l=e-M.endDelay,d=O(n);M.progress=a(d/e*100,0,100),M.reversePlayback=d<M.currentTime,r&&function(n){if(M.reversePlayback)for(var e=c;e--;)P(n,r[e]);else for(var t=0;t<c;t++)P(n,r[t])}(d),!M.began&&M.currentTime>0&&(M.began=!0,D("begin")),!M.loopBegan&&M.currentTime>0&&(M.loopBegan=!0,D("loopBegin")),d<=t&&0!==M.currentTime&&I(0),(d>=l&&M.currentTime!==e||!e)&&I(e),d>t&&d<l?(M.changeBegan||(M.changeBegan=!0,M.changeCompleted=!1,D("changeBegin")),D("change"),I(d)):M.changeBegan&&(M.changeCompleted=!0,M.changeBegan=!1,D("changeComplete")),M.currentTime=a(d,0,e),M.began&&D("update"),n>=e&&(u=0,M.remaining&&!0!==M.remaining&&M.remaining--,M.remaining?(o=i,D("loopComplete"),M.loopBegan=!1,"alternate"===M.direction&&x()):(M.paused=!0,M.completed||(M.completed=!0,D("loopComplete"),D("complete"),!M.passThrough&&"Promise"in window&&(s(),f(M)))))}return M.reset=function(){var n=M.direction;M.passThrough=!1,M.currentTime=0,M.progress=0,M.paused=!0,M.began=!1,M.loopBegan=!1,M.changeBegan=!1,M.completed=!1,M.changeCompleted=!1,M.reversePlayback=!1,M.reversed="reverse"===n,M.remaining=M.loop,r=M.children;for(var e=c=r.length;e--;)M.children[e].reset();(M.reversed&&!0!==M.loop||"alternate"===n&&1===M.loop)&&M.remaining++,I(M.reversed?M.duration:0)},M._onDocumentVisibility=C,M.set=function(n,e){return z(n,e),M},M.tick=function(n){i=n,o||(o=i),B((i+(u-o))*en.speed)},M.seek=function(n){B(O(n))},M.pause=function(){M.paused=!0,C()},M.play=function(){M.paused&&(M.completed&&M.reset(),M.paused=!1,K.push(M),C(),U())},M.reverse=function(){x(),M.completed=!M.reversed,C()},M.restart=function(){M.reset(),M.play()},M.remove=function(n){rn(W(n),M)},M.reset(),M.autoplay&&M.play(),M}function tn(n,e){for(var t=e.length;t--;)M(n,e[t].animatable.target)&&e.splice(t,1)}function rn(n,e){var t=e.animations,r=e.children;tn(n,t);for(var a=r.length;a--;){var o=r[a],u=o.animations;tn(n,u),u.length||o.children.length||r.splice(a,1)}t.length||r.length||e.pause()}return en.version="3.2.1",en.speed=1,en.suspendWhenDocumentHidden=!0,en.running=K,en.remove=function(n){for(var e=W(n),t=K.length;t--;)rn(e,K[t])},en.get=A,en.set=z,en.convertPx=D,en.path=function(n,e){var t=i.str(n)?g(n)[0]:n,r=e||100;return function(n){return{property:n,el:t,svg:H(t),totalLength:q(t)*(r/100)}}},en.setDashoffset=function(n){var e=q(n);return n.setAttribute("stroke-dasharray",e),e},en.stagger=function(n,e){void 0===e&&(e={});var t=e.direction||"normal",r=e.easing?h(e.easing):null,a=e.grid,o=e.axis,u=e.from||0,c="first"===u,s="center"===u,f="last"===u,l=i.arr(n),d=l?parseFloat(n[0]):parseFloat(n),p=l?parseFloat(n[1]):0,v=C(l?n[1]:n)||0,g=e.start||0+(l?d:0),m=[],y=0;return function(n,e,i){if(c&&(u=0),s&&(u=(i-1)/2),f&&(u=i-1),!m.length){for(var h=0;h<i;h++){if(a){var b=s?(a[0]-1)/2:u%a[0],M=s?(a[1]-1)/2:Math.floor(u/a[0]),x=b-h%a[0],w=M-Math.floor(h/a[0]),k=Math.sqrt(x*x+w*w);"x"===o&&(k=-x),"y"===o&&(k=-w),m.push(k)}else m.push(Math.abs(u-h));y=Math.max.apply(Math,m)}r&&(m=m.map(function(n){return r(n/y)*y})),"reverse"===t&&(m=m.map(function(n){return o?n<0?-1*n:-n:Math.abs(y-n)}))}return g+(l?(p-d)/y:d)*(Math.round(100*m[e])/100)+v}},en.timeline=function(n){void 0===n&&(n={});var t=en(n);return t.duration=0,t.add=function(r,a){var o=K.indexOf(t),u=t.children;function c(n){n.passThrough=!0}o>-1&&K.splice(o,1);for(var s=0;s<u.length;s++)c(u[s]);var f=k(r,w(e,n));f.targets=f.targets||n.targets;var l=t.duration;f.autoplay=!1,f.direction=t.direction,f.timelineOffset=i.und(a)?l:N(a,l),c(t),t.seek(f.timelineOffset);var d=en(f);c(d),u.push(d);var p=R(u,n);return t.delay=p.delay,t.endDelay=p.endDelay,t.duration=p.duration,t.seek(0),t.reset(),t.autoplay&&t.play(),t},t},en.easing=h,en.penner=v,en.random=function(n,e){return Math.floor(Math.random()*(e-n+1))+n},en});
+</script>
+<script>/* canvas-confetti 1.9.3 (ISC) */
+// canvas-confetti v1.9.3 built on 2024-04-30T22:19:17.794Z
+!(function (window, module) {
+// source content
+/* globals Map */
+
+(function main(global, module, isWorker, workerSize) {
+  var canUseWorker = !!(
+    global.Worker &&
+    global.Blob &&
+    global.Promise &&
+    global.OffscreenCanvas &&
+    global.OffscreenCanvasRenderingContext2D &&
+    global.HTMLCanvasElement &&
+    global.HTMLCanvasElement.prototype.transferControlToOffscreen &&
+    global.URL &&
+    global.URL.createObjectURL);
+
+  var canUsePaths = typeof Path2D === 'function' && typeof DOMMatrix === 'function';
+  var canDrawBitmap = (function () {
+    // this mostly supports ssr
+    if (!global.OffscreenCanvas) {
+      return false;
+    }
+
+    var canvas = new OffscreenCanvas(1, 1);
+    var ctx = canvas.getContext('2d');
+    ctx.fillRect(0, 0, 1, 1);
+    var bitmap = canvas.transferToImageBitmap();
+
+    try {
+      ctx.createPattern(bitmap, 'no-repeat');
+    } catch (e) {
+      return false;
+    }
+
+    return true;
+  })();
+
+  function noop() {}
+
+  // create a promise if it exists, otherwise, just
+  // call the function directly
+  function promise(func) {
+    var ModulePromise = module.exports.Promise;
+    var Prom = ModulePromise !== void 0 ? ModulePromise : global.Promise;
+
+    if (typeof Prom === 'function') {
+      return new Prom(func);
+    }
+
+    func(noop, noop);
+
+    return null;
+  }
+
+  var bitmapMapper = (function (skipTransform, map) {
+    // see https://github.com/catdad/canvas-confetti/issues/209
+    // creating canvases is actually pretty expensive, so we should create a
+    // 1:1 map for bitmap:canvas, so that we can animate the confetti in
+    // a performant manner, but also not store them forever so that we don't
+    // have a memory leak
+    return {
+      transform: function(bitmap) {
+        if (skipTransform) {
+          return bitmap;
+        }
+
+        if (map.has(bitmap)) {
+          return map.get(bitmap);
+        }
+
+        var canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0);
+
+        map.set(bitmap, canvas);
+
+        return canvas;
+      },
+      clear: function () {
+        map.clear();
+      }
+    };
+  })(canDrawBitmap, new Map());
+
+  var raf = (function () {
+    var TIME = Math.floor(1000 / 60);
+    var frame, cancel;
+    var frames = {};
+    var lastFrameTime = 0;
+
+    if (typeof requestAnimationFrame === 'function' && typeof cancelAnimationFrame === 'function') {
+      frame = function (cb) {
+        var id = Math.random();
+
+        frames[id] = requestAnimationFrame(function onFrame(time) {
+          if (lastFrameTime === time || lastFrameTime + TIME - 1 < time) {
+            lastFrameTime = time;
+            delete frames[id];
+
+            cb();
+          } else {
+            frames[id] = requestAnimationFrame(onFrame);
+          }
+        });
+
+        return id;
+      };
+      cancel = function (id) {
+        if (frames[id]) {
+          cancelAnimationFrame(frames[id]);
+        }
+      };
+    } else {
+      frame = function (cb) {
+        return setTimeout(cb, TIME);
+      };
+      cancel = function (timer) {
+        return clearTimeout(timer);
+      };
+    }
+
+    return { frame: frame, cancel: cancel };
+  }());
+
+  var getWorker = (function () {
+    var worker;
+    var prom;
+    var resolves = {};
+
+    function decorate(worker) {
+      function execute(options, callback) {
+        worker.postMessage({ options: options || {}, callback: callback });
+      }
+      worker.init = function initWorker(canvas) {
+        var offscreen = canvas.transferControlToOffscreen();
+        worker.postMessage({ canvas: offscreen }, [offscreen]);
+      };
+
+      worker.fire = function fireWorker(options, size, done) {
+        if (prom) {
+          execute(options, null);
+          return prom;
+        }
+
+        var id = Math.random().toString(36).slice(2);
+
+        prom = promise(function (resolve) {
+          function workerDone(msg) {
+            if (msg.data.callback !== id) {
+              return;
+            }
+
+            delete resolves[id];
+            worker.removeEventListener('message', workerDone);
+
+            prom = null;
+
+            bitmapMapper.clear();
+
+            done();
+            resolve();
+          }
+
+          worker.addEventListener('message', workerDone);
+          execute(options, id);
+
+          resolves[id] = workerDone.bind(null, { data: { callback: id }});
+        });
+
+        return prom;
+      };
+
+      worker.reset = function resetWorker() {
+        worker.postMessage({ reset: true });
+
+        for (var id in resolves) {
+          resolves[id]();
+          delete resolves[id];
+        }
+      };
+    }
+
+    return function () {
+      if (worker) {
+        return worker;
+      }
+
+      if (!isWorker && canUseWorker) {
+        var code = [
+          'var CONFETTI, SIZE = {}, module = {};',
+          '(' + main.toString() + ')(this, module, true, SIZE);',
+          'onmessage = function(msg) {',
+          '  if (msg.data.options) {',
+          '    CONFETTI(msg.data.options).then(function () {',
+          '      if (msg.data.callback) {',
+          '        postMessage({ callback: msg.data.callback });',
+          '      }',
+          '    });',
+          '  } else if (msg.data.reset) {',
+          '    CONFETTI && CONFETTI.reset();',
+          '  } else if (msg.data.resize) {',
+          '    SIZE.width = msg.data.resize.width;',
+          '    SIZE.height = msg.data.resize.height;',
+          '  } else if (msg.data.canvas) {',
+          '    SIZE.width = msg.data.canvas.width;',
+          '    SIZE.height = msg.data.canvas.height;',
+          '    CONFETTI = module.exports.create(msg.data.canvas);',
+          '  }',
+          '}',
+        ].join('\n');
+        try {
+          worker = new Worker(URL.createObjectURL(new Blob([code])));
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          typeof console !== undefined && typeof console.warn === 'function' ? console.warn('🎊 Could not load worker', e) : null;
+
+          return null;
+        }
+
+        decorate(worker);
+      }
+
+      return worker;
+    };
+  })();
+
+  var defaults = {
+    particleCount: 50,
+    angle: 90,
+    spread: 45,
+    startVelocity: 45,
+    decay: 0.9,
+    gravity: 1,
+    drift: 0,
+    ticks: 200,
+    x: 0.5,
+    y: 0.5,
+    shapes: ['square', 'circle'],
+    zIndex: 100,
+    colors: [
+      '#26ccff',
+      '#a25afd',
+      '#ff5e7e',
+      '#88ff5a',
+      '#fcff42',
+      '#ffa62d',
+      '#ff36ff'
+    ],
+    // probably should be true, but back-compat
+    disableForReducedMotion: false,
+    scalar: 1
+  };
+
+  function convert(val, transform) {
+    return transform ? transform(val) : val;
+  }
+
+  function isOk(val) {
+    return !(val === null || val === undefined);
+  }
+
+  function prop(options, name, transform) {
+    return convert(
+      options && isOk(options[name]) ? options[name] : defaults[name],
+      transform
+    );
+  }
+
+  function onlyPositiveInt(number){
+    return number < 0 ? 0 : Math.floor(number);
+  }
+
+  function randomInt(min, max) {
+    // [min, max)
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
+  function toDecimal(str) {
+    return parseInt(str, 16);
+  }
+
+  function colorsToRgb(colors) {
+    return colors.map(hexToRgb);
+  }
+
+  function hexToRgb(str) {
+    var val = String(str).replace(/[^0-9a-f]/gi, '');
+
+    if (val.length < 6) {
+        val = val[0]+val[0]+val[1]+val[1]+val[2]+val[2];
+    }
+
+    return {
+      r: toDecimal(val.substring(0,2)),
+      g: toDecimal(val.substring(2,4)),
+      b: toDecimal(val.substring(4,6))
+    };
+  }
+
+  function getOrigin(options) {
+    var origin = prop(options, 'origin', Object);
+    origin.x = prop(origin, 'x', Number);
+    origin.y = prop(origin, 'y', Number);
+
+    return origin;
+  }
+
+  function setCanvasWindowSize(canvas) {
+    canvas.width = document.documentElement.clientWidth;
+    canvas.height = document.documentElement.clientHeight;
+  }
+
+  function setCanvasRectSize(canvas) {
+    var rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+  }
+
+  function getCanvas(zIndex) {
+    var canvas = document.createElement('canvas');
+
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0px';
+    canvas.style.left = '0px';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = zIndex;
+
+    return canvas;
+  }
+
+  function ellipse(context, x, y, radiusX, radiusY, rotation, startAngle, endAngle, antiClockwise) {
+    context.save();
+    context.translate(x, y);
+    context.rotate(rotation);
+    context.scale(radiusX, radiusY);
+    context.arc(0, 0, 1, startAngle, endAngle, antiClockwise);
+    context.restore();
+  }
+
+  function randomPhysics(opts) {
+    var radAngle = opts.angle * (Math.PI / 180);
+    var radSpread = opts.spread * (Math.PI / 180);
+
+    return {
+      x: opts.x,
+      y: opts.y,
+      wobble: Math.random() * 10,
+      wobbleSpeed: Math.min(0.11, Math.random() * 0.1 + 0.05),
+      velocity: (opts.startVelocity * 0.5) + (Math.random() * opts.startVelocity),
+      angle2D: -radAngle + ((0.5 * radSpread) - (Math.random() * radSpread)),
+      tiltAngle: (Math.random() * (0.75 - 0.25) + 0.25) * Math.PI,
+      color: opts.color,
+      shape: opts.shape,
+      tick: 0,
+      totalTicks: opts.ticks,
+      decay: opts.decay,
+      drift: opts.drift,
+      random: Math.random() + 2,
+      tiltSin: 0,
+      tiltCos: 0,
+      wobbleX: 0,
+      wobbleY: 0,
+      gravity: opts.gravity * 3,
+      ovalScalar: 0.6,
+      scalar: opts.scalar,
+      flat: opts.flat
+    };
+  }
+
+  function updateFetti(context, fetti) {
+    fetti.x += Math.cos(fetti.angle2D) * fetti.velocity + fetti.drift;
+    fetti.y += Math.sin(fetti.angle2D) * fetti.velocity + fetti.gravity;
+    fetti.velocity *= fetti.decay;
+
+    if (fetti.flat) {
+      fetti.wobble = 0;
+      fetti.wobbleX = fetti.x + (10 * fetti.scalar);
+      fetti.wobbleY = fetti.y + (10 * fetti.scalar);
+
+      fetti.tiltSin = 0;
+      fetti.tiltCos = 0;
+      fetti.random = 1;
+    } else {
+      fetti.wobble += fetti.wobbleSpeed;
+      fetti.wobbleX = fetti.x + ((10 * fetti.scalar) * Math.cos(fetti.wobble));
+      fetti.wobbleY = fetti.y + ((10 * fetti.scalar) * Math.sin(fetti.wobble));
+
+      fetti.tiltAngle += 0.1;
+      fetti.tiltSin = Math.sin(fetti.tiltAngle);
+      fetti.tiltCos = Math.cos(fetti.tiltAngle);
+      fetti.random = Math.random() + 2;
+    }
+
+    var progress = (fetti.tick++) / fetti.totalTicks;
+
+    var x1 = fetti.x + (fetti.random * fetti.tiltCos);
+    var y1 = fetti.y + (fetti.random * fetti.tiltSin);
+    var x2 = fetti.wobbleX + (fetti.random * fetti.tiltCos);
+    var y2 = fetti.wobbleY + (fetti.random * fetti.tiltSin);
+
+    context.fillStyle = 'rgba(' + fetti.color.r + ', ' + fetti.color.g + ', ' + fetti.color.b + ', ' + (1 - progress) + ')';
+
+    context.beginPath();
+
+    if (canUsePaths && fetti.shape.type === 'path' && typeof fetti.shape.path === 'string' && Array.isArray(fetti.shape.matrix)) {
+      context.fill(transformPath2D(
+        fetti.shape.path,
+        fetti.shape.matrix,
+        fetti.x,
+        fetti.y,
+        Math.abs(x2 - x1) * 0.1,
+        Math.abs(y2 - y1) * 0.1,
+        Math.PI / 10 * fetti.wobble
+      ));
+    } else if (fetti.shape.type === 'bitmap') {
+      var rotation = Math.PI / 10 * fetti.wobble;
+      var scaleX = Math.abs(x2 - x1) * 0.1;
+      var scaleY = Math.abs(y2 - y1) * 0.1;
+      var width = fetti.shape.bitmap.width * fetti.scalar;
+      var height = fetti.shape.bitmap.height * fetti.scalar;
+
+      var matrix = new DOMMatrix([
+        Math.cos(rotation) * scaleX,
+        Math.sin(rotation) * scaleX,
+        -Math.sin(rotation) * scaleY,
+        Math.cos(rotation) * scaleY,
+        fetti.x,
+        fetti.y
+      ]);
+
+      // apply the transform matrix from the confetti shape
+      matrix.multiplySelf(new DOMMatrix(fetti.shape.matrix));
+
+      var pattern = context.createPattern(bitmapMapper.transform(fetti.shape.bitmap), 'no-repeat');
+      pattern.setTransform(matrix);
+
+      context.globalAlpha = (1 - progress);
+      context.fillStyle = pattern;
+      context.fillRect(
+        fetti.x - (width / 2),
+        fetti.y - (height / 2),
+        width,
+        height
+      );
+      context.globalAlpha = 1;
+    } else if (fetti.shape === 'circle') {
+      context.ellipse ?
+        context.ellipse(fetti.x, fetti.y, Math.abs(x2 - x1) * fetti.ovalScalar, Math.abs(y2 - y1) * fetti.ovalScalar, Math.PI / 10 * fetti.wobble, 0, 2 * Math.PI) :
+        ellipse(context, fetti.x, fetti.y, Math.abs(x2 - x1) * fetti.ovalScalar, Math.abs(y2 - y1) * fetti.ovalScalar, Math.PI / 10 * fetti.wobble, 0, 2 * Math.PI);
+    } else if (fetti.shape === 'star') {
+      var rot = Math.PI / 2 * 3;
+      var innerRadius = 4 * fetti.scalar;
+      var outerRadius = 8 * fetti.scalar;
+      var x = fetti.x;
+      var y = fetti.y;
+      var spikes = 5;
+      var step = Math.PI / spikes;
+
+      while (spikes--) {
+        x = fetti.x + Math.cos(rot) * outerRadius;
+        y = fetti.y + Math.sin(rot) * outerRadius;
+        context.lineTo(x, y);
+        rot += step;
+
+        x = fetti.x + Math.cos(rot) * innerRadius;
+        y = fetti.y + Math.sin(rot) * innerRadius;
+        context.lineTo(x, y);
+        rot += step;
+      }
+    } else {
+      context.moveTo(Math.floor(fetti.x), Math.floor(fetti.y));
+      context.lineTo(Math.floor(fetti.wobbleX), Math.floor(y1));
+      context.lineTo(Math.floor(x2), Math.floor(y2));
+      context.lineTo(Math.floor(x1), Math.floor(fetti.wobbleY));
+    }
+
+    context.closePath();
+    context.fill();
+
+    return fetti.tick < fetti.totalTicks;
+  }
+
+  function animate(canvas, fettis, resizer, size, done) {
+    var animatingFettis = fettis.slice();
+    var context = canvas.getContext('2d');
+    var animationFrame;
+    var destroy;
+
+    var prom = promise(function (resolve) {
+      function onDone() {
+        animationFrame = destroy = null;
+
+        context.clearRect(0, 0, size.width, size.height);
+        bitmapMapper.clear();
+
+        done();
+        resolve();
+      }
+
+      function update() {
+        if (isWorker && !(size.width === workerSize.width && size.height === workerSize.height)) {
+          size.width = canvas.width = workerSize.width;
+          size.height = canvas.height = workerSize.height;
+        }
+
+        if (!size.width && !size.height) {
+          resizer(canvas);
+          size.width = canvas.width;
+          size.height = canvas.height;
+        }
+
+        context.clearRect(0, 0, size.width, size.height);
+
+        animatingFettis = animatingFettis.filter(function (fetti) {
+          return updateFetti(context, fetti);
+        });
+
+        if (animatingFettis.length) {
+          animationFrame = raf.frame(update);
+        } else {
+          onDone();
+        }
+      }
+
+      animationFrame = raf.frame(update);
+      destroy = onDone;
+    });
+
+    return {
+      addFettis: function (fettis) {
+        animatingFettis = animatingFettis.concat(fettis);
+
+        return prom;
+      },
+      canvas: canvas,
+      promise: prom,
+      reset: function () {
+        if (animationFrame) {
+          raf.cancel(animationFrame);
+        }
+
+        if (destroy) {
+          destroy();
+        }
+      }
+    };
+  }
+
+  function confettiCannon(canvas, globalOpts) {
+    var isLibCanvas = !canvas;
+    var allowResize = !!prop(globalOpts || {}, 'resize');
+    var hasResizeEventRegistered = false;
+    var globalDisableForReducedMotion = prop(globalOpts, 'disableForReducedMotion', Boolean);
+    var shouldUseWorker = canUseWorker && !!prop(globalOpts || {}, 'useWorker');
+    var worker = shouldUseWorker ? getWorker() : null;
+    var resizer = isLibCanvas ? setCanvasWindowSize : setCanvasRectSize;
+    var initialized = (canvas && worker) ? !!canvas.__confetti_initialized : false;
+    var preferLessMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion)').matches;
+    var animationObj;
+
+    function fireLocal(options, size, done) {
+      var particleCount = prop(options, 'particleCount', onlyPositiveInt);
+      var angle = prop(options, 'angle', Number);
+      var spread = prop(options, 'spread', Number);
+      var startVelocity = prop(options, 'startVelocity', Number);
+      var decay = prop(options, 'decay', Number);
+      var gravity = prop(options, 'gravity', Number);
+      var drift = prop(options, 'drift', Number);
+      var colors = prop(options, 'colors', colorsToRgb);
+      var ticks = prop(options, 'ticks', Number);
+      var shapes = prop(options, 'shapes');
+      var scalar = prop(options, 'scalar');
+      var flat = !!prop(options, 'flat');
+      var origin = getOrigin(options);
+
+      var temp = particleCount;
+      var fettis = [];
+
+      var startX = canvas.width * origin.x;
+      var startY = canvas.height * origin.y;
+
+      while (temp--) {
+        fettis.push(
+          randomPhysics({
+            x: startX,
+            y: startY,
+            angle: angle,
+            spread: spread,
+            startVelocity: startVelocity,
+            color: colors[temp % colors.length],
+            shape: shapes[randomInt(0, shapes.length)],
+            ticks: ticks,
+            decay: decay,
+            gravity: gravity,
+            drift: drift,
+            scalar: scalar,
+            flat: flat
+          })
+        );
+      }
+
+      // if we have a previous canvas already animating,
+      // add to it
+      if (animationObj) {
+        return animationObj.addFettis(fettis);
+      }
+
+      animationObj = animate(canvas, fettis, resizer, size , done);
+
+      return animationObj.promise;
+    }
+
+    function fire(options) {
+      var disableForReducedMotion = globalDisableForReducedMotion || prop(options, 'disableForReducedMotion', Boolean);
+      var zIndex = prop(options, 'zIndex', Number);
+
+      if (disableForReducedMotion && preferLessMotion) {
+        return promise(function (resolve) {
+          resolve();
+        });
+      }
+
+      if (isLibCanvas && animationObj) {
+        // use existing canvas from in-progress animation
+        canvas = animationObj.canvas;
+      } else if (isLibCanvas && !canvas) {
+        // create and initialize a new canvas
+        canvas = getCanvas(zIndex);
+        document.body.appendChild(canvas);
+      }
+
+      if (allowResize && !initialized) {
+        // initialize the size of a user-supplied canvas
+        resizer(canvas);
+      }
+
+      var size = {
+        width: canvas.width,
+        height: canvas.height
+      };
+
+      if (worker && !initialized) {
+        worker.init(canvas);
+      }
+
+      initialized = true;
+
+      if (worker) {
+        canvas.__confetti_initialized = true;
+      }
+
+      function onResize() {
+        if (worker) {
+          // TODO this really shouldn't be immediate, because it is expensive
+          var obj = {
+            getBoundingClientRect: function () {
+              if (!isLibCanvas) {
+                return canvas.getBoundingClientRect();
+              }
+            }
+          };
+
+          resizer(obj);
+
+          worker.postMessage({
+            resize: {
+              width: obj.width,
+              height: obj.height
+            }
+          });
+          return;
+        }
+
+        // don't actually query the size here, since this
+        // can execute frequently and rapidly
+        size.width = size.height = null;
+      }
+
+      function done() {
+        animationObj = null;
+
+        if (allowResize) {
+          hasResizeEventRegistered = false;
+          global.removeEventListener('resize', onResize);
+        }
+
+        if (isLibCanvas && canvas) {
+          if (document.body.contains(canvas)) {
+            document.body.removeChild(canvas); 
+          }
+          canvas = null;
+          initialized = false;
+        }
+      }
+
+      if (allowResize && !hasResizeEventRegistered) {
+        hasResizeEventRegistered = true;
+        global.addEventListener('resize', onResize, false);
+      }
+
+      if (worker) {
+        return worker.fire(options, size, done);
+      }
+
+      return fireLocal(options, size, done);
+    }
+
+    fire.reset = function () {
+      if (worker) {
+        worker.reset();
+      }
+
+      if (animationObj) {
+        animationObj.reset();
+      }
+    };
+
+    return fire;
+  }
+
+  // Make default export lazy to defer worker creation until called.
+  var defaultFire;
+  function getDefaultFire() {
+    if (!defaultFire) {
+      defaultFire = confettiCannon(null, { useWorker: true, resize: true });
+    }
+    return defaultFire;
+  }
+
+  function transformPath2D(pathString, pathMatrix, x, y, scaleX, scaleY, rotation) {
+    var path2d = new Path2D(pathString);
+
+    var t1 = new Path2D();
+    t1.addPath(path2d, new DOMMatrix(pathMatrix));
+
+    var t2 = new Path2D();
+    // see https://developer.mozilla.org/en-US/docs/Web/API/DOMMatrix/DOMMatrix
+    t2.addPath(t1, new DOMMatrix([
+      Math.cos(rotation) * scaleX,
+      Math.sin(rotation) * scaleX,
+      -Math.sin(rotation) * scaleY,
+      Math.cos(rotation) * scaleY,
+      x,
+      y
+    ]));
+
+    return t2;
+  }
+
+  function shapeFromPath(pathData) {
+    if (!canUsePaths) {
+      throw new Error('path confetti are not supported in this browser');
+    }
+
+    var path, matrix;
+
+    if (typeof pathData === 'string') {
+      path = pathData;
+    } else {
+      path = pathData.path;
+      matrix = pathData.matrix;
+    }
+
+    var path2d = new Path2D(path);
+    var tempCanvas = document.createElement('canvas');
+    var tempCtx = tempCanvas.getContext('2d');
+
+    if (!matrix) {
+      // attempt to figure out the width of the path, up to 1000x1000
+      var maxSize = 1000;
+      var minX = maxSize;
+      var minY = maxSize;
+      var maxX = 0;
+      var maxY = 0;
+      var width, height;
+
+      // do some line skipping... this is faster than checking
+      // every pixel and will be mostly still correct
+      for (var x = 0; x < maxSize; x += 2) {
+        for (var y = 0; y < maxSize; y += 2) {
+          if (tempCtx.isPointInPath(path2d, x, y, 'nonzero')) {
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+        }
+      }
+
+      width = maxX - minX;
+      height = maxY - minY;
+
+      var maxDesiredSize = 10;
+      var scale = Math.min(maxDesiredSize/width, maxDesiredSize/height);
+
+      matrix = [
+        scale, 0, 0, scale,
+        -Math.round((width/2) + minX) * scale,
+        -Math.round((height/2) + minY) * scale
+      ];
+    }
+
+    return {
+      type: 'path',
+      path: path,
+      matrix: matrix
+    };
+  }
+
+  function shapeFromText(textData) {
+    var text,
+        scalar = 1,
+        color = '#000000',
+        // see https://nolanlawson.com/2022/04/08/the-struggle-of-using-native-emoji-on-the-web/
+        fontFamily = '"Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", "EmojiOne Color", "Android Emoji", "Twemoji Mozilla", "system emoji", sans-serif';
+
+    if (typeof textData === 'string') {
+      text = textData;
+    } else {
+      text = textData.text;
+      scalar = 'scalar' in textData ? textData.scalar : scalar;
+      fontFamily = 'fontFamily' in textData ? textData.fontFamily : fontFamily;
+      color = 'color' in textData ? textData.color : color;
+    }
+
+    // all other confetti are 10 pixels,
+    // so this pixel size is the de-facto 100% scale confetti
+    var fontSize = 10 * scalar;
+    var font = '' + fontSize + 'px ' + fontFamily;
+
+    var canvas = new OffscreenCanvas(fontSize, fontSize);
+    var ctx = canvas.getContext('2d');
+
+    ctx.font = font;
+    var size = ctx.measureText(text);
+    var width = Math.ceil(size.actualBoundingBoxRight + size.actualBoundingBoxLeft);
+    var height = Math.ceil(size.actualBoundingBoxAscent + size.actualBoundingBoxDescent);
+
+    var padding = 2;
+    var x = size.actualBoundingBoxLeft + padding;
+    var y = size.actualBoundingBoxAscent + padding;
+    width += padding + padding;
+    height += padding + padding;
+
+    canvas = new OffscreenCanvas(width, height);
+    ctx = canvas.getContext('2d');
+    ctx.font = font;
+    ctx.fillStyle = color;
+
+    ctx.fillText(text, x, y);
+
+    var scale = 1 / scalar;
+
+    return {
+      type: 'bitmap',
+      // TODO these probably need to be transfered for workers
+      bitmap: canvas.transferToImageBitmap(),
+      matrix: [scale, 0, 0, scale, -width * scale / 2, -height * scale / 2]
+    };
+  }
+
+  module.exports = function() {
+    return getDefaultFire().apply(this, arguments);
+  };
+  module.exports.reset = function() {
+    getDefaultFire().reset();
+  };
+  module.exports.create = confettiCannon;
+  module.exports.shapeFromPath = shapeFromPath;
+  module.exports.shapeFromText = shapeFromText;
+}((function () {
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+
+  return this || {};
+})(), module, false));
+
+// end source content
+
+  window.confetti = module.exports;
+}(window, {}));
+
+</script>
 <style>
   :root{
     --paper:#F2EDE1;
@@ -42,7 +949,9 @@
   .serif{font-family:var(--serif)}
 
   /* ---------- top ---------- */
-  .top{padding:22px 0 6px}
+  .top{padding:20px 0 6px}
+  .brand{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+  .brand span{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:600}
   .hello{font-family:var(--serif);font-size:30px;line-height:1.12;font-weight:500;letter-spacing:-.01em}
   .today{color:var(--muted);font-size:13px;margin-top:4px}
 
@@ -261,12 +1170,34 @@
   @keyframes fall{0%{transform:translateY(0);opacity:0}18%{opacity:1}100%{transform:translateY(22px);opacity:0}}
   @keyframes drift{from{transform:translateX(0)}to{transform:translateX(90px)}}
   .waveG{animation:drift 3.2s linear infinite}
+  .backup{display:flex;gap:9px;margin-top:22px}
+  .backup button{
+    flex:1;padding:11px;border-radius:13px;border:1px solid var(--line);background:var(--card);
+    font-size:13.5px;font-weight:600;color:var(--muted)
+  }
+  .ibar{
+    position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:25;
+    max-width:536px;margin:0 auto;background:var(--green);color:#F2EDE1;border-radius:18px;
+    padding:13px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(35,39,30,.22)
+  }
+  .ibar[hidden]{display:none}
+  .itxt{flex:1;min-width:0}
+  .itxt b{display:block;font-size:14.5px}
+  .itxt span{display:block;font-size:12.5px;opacity:.85;margin-top:2px}
+  .ibar button{padding:9px 14px;border-radius:11px;font-size:13.5px;font-weight:600;flex:none}
+  #iyes{background:var(--gold);color:#3B2A08}
+  #ino{color:#F2EDE1;opacity:.75}
   .foot{color:var(--muted);font-size:12px;text-align:center;padding:24px 0 6px}
   @media (prefers-reduced-motion:reduce){.drop,.waveG{animation:none}#liquid{transition:none}}
 </style>
 
 <div id="app"></div>
 <div id="ov"></div>
+<div class="ibar" id="install" hidden>
+  <span class="itxt"><b>Pasang ke layar utama</b><span id="ihint">Buka langsung dari ikon, jalan tanpa internet.</span></span>
+  <button id="iyes">Pasang</button>
+  <button id="ino">Nanti</button>
+</div>
 
 <script>
 /* =========================================================
@@ -466,17 +1397,26 @@ const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
 const store = { custom:{}, deleted:[], favs:[], sound:true, interval:0, last:null };
 let dirty = false;
 
+const KEY = "resep:v2";
+const DB = {
+  async get(){
+    if(window.storage && window.storage.get){
+      try{ const r = await window.storage.get(KEY); if(r && r.value) return r.value; }catch(e){}
+    }
+    try{ return localStorage.getItem(KEY); }catch(e){ return null; }
+  },
+  async set(v){
+    let ok = false;
+    if(window.storage && window.storage.set){ try{ await window.storage.set(KEY, v); ok = true; }catch(e){} }
+    try{ localStorage.setItem(KEY, v); ok = true; }catch(e){}
+    return ok;
+  }
+};
 async function loadStore(){
-  try{
-    const r = await window.storage.get("resep:v2");
-    if(r && r.value) Object.assign(store, JSON.parse(r.value));
-  }catch(e){}
+  try{ const raw = await DB.get(); if(raw) Object.assign(store, JSON.parse(raw)); }catch(e){}
   render();
 }
-async function saveStore(){
-  try{ await window.storage.set("resep:v2", JSON.stringify(store)); }
-  catch(e){ dirty = true; }
-}
+async function saveStore(){ dirty = !(await DB.set(JSON.stringify(store))); }
 
 function recipes(){
   const del = new Set(store.deleted);
@@ -688,6 +1628,18 @@ function artSVG(key, w, dark, tone){
 }
 const artFor = (r, w, mode) => artSVG(artKey(r), w, mode === "dark", r.tone);
 
+function logoMark(size, dark){
+  const bg = dark ? "#F3EDE1" : "#2F3B26";
+  const fg = dark ? "#2F3B26" : "#F3EDE1";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 512 512" aria-hidden="true">
+    <circle cx="256" cy="256" r="248" fill="${bg}"/>
+    <circle cx="256" cy="256" r="214" fill="none" stroke="${fg}" stroke-width="11" opacity=".4"/>
+    <path d="M256 88 C256 88 374 214 374 300 A118 118 0 1 1 138 300 C138 214 256 88 256 88 Z" fill="${fg}"/>
+    <path d="M182 262 H330 L262 356 H250 Z" fill="${bg}"/>
+    <circle cx="256" cy="386" r="15" fill="${bg}"/>
+  </svg>`;
+}
+
 const ICON = {
   home:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6H9v6H5a1 1 0 01-1-1z"/></svg>',
   book:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z"/><path d="M8 4v13"/></svg>',
@@ -725,6 +1677,7 @@ function homeView(){
 
   return `<div class="wrap">
     <div class="top">
+      <div class="brand">${logoMark(30)}<span>Buku Resep Seduh</span></div>
       <h1 class="hello">${greeting()},<br>Wahyu</h1>
       <p class="today">${todayText()}</p>
     </div>
@@ -777,7 +1730,13 @@ function homeView(){
       <span class="ic blue">${ICON.plus}</span>
       <span class="bd"><b>Catatan rasio baru</b><span>konsentrat, larutan, patokan</span></span>
     </button>
+    <div class="backup">
+      <button data-export>Ekspor data</button>
+      <button data-import>Impor data</button>
+      <input type="file" id="fimp" accept="application/json,.json" hidden>
+    </div>
     <p class="foot">${all.length} entri tersimpan di perangkat ini</p>
+    <p class="foot" id="pwastat" style="margin-top:-16px"></p>
   </div>`;
 }
 
@@ -1161,6 +2120,34 @@ function bind(v){
   app.querySelectorAll("[data-new]").forEach(b => b.onclick = () => {
     state.draft = newRecipe(b.dataset.new); go("edit");
   });
+  if(v === "home") pwaStatus();
+  const ex = app.querySelector("[data-export]");
+  if(ex) ex.onclick = () => {
+    const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "resep-seduh-" + new Date().toISOString().slice(0,10) + ".json";
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  };
+  const im = app.querySelector("[data-import]");
+  if(im) im.onclick = () => app.querySelector("#fimp").click();
+  const fi = app.querySelector("#fimp");
+  if(fi) fi.onchange = e => {
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try{
+        const d = JSON.parse(rd.result);
+        Object.assign(store, {
+          custom: Object.assign({}, store.custom, d.custom || {}),
+          deleted: [...new Set((store.deleted||[]).concat(d.deleted || []))],
+          favs: [...new Set((store.favs||[]).concat(d.favs || []))]
+        });
+        saveStore(); render();
+      }catch(err){ alert("File cadangan tidak terbaca."); }
+    };
+    rd.readAsText(f);
+  };
   const back = app.querySelector("[data-back]");
   if(back) back.onclick = () => go(state.view === "edit" && state.draft && state.draft.id ? "detail" : "list");
 
@@ -1500,4 +2487,55 @@ document.addEventListener("keydown", e => {
 
 render();
 loadStore();
+
+/* =========================================================
+   11. PWA: pasang + service worker
+   ========================================================= */
+const ibar = document.getElementById("install");
+const iSkip = () => { try{ return localStorage.getItem("resep:noinstall") === "1"; }catch(e){ return false; } };
+let deferred = null;
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault(); deferred = e;
+  if(!iSkip()) ibar.hidden = false;
+});
+document.getElementById("iyes").onclick = async () => {
+  ibar.hidden = true;
+  if(deferred){ deferred.prompt(); await deferred.userChoice; deferred = null; }
+};
+document.getElementById("ino").onclick = () => {
+  try{ localStorage.setItem("resep:noinstall", "1"); }catch(e){}
+  ibar.hidden = true;
+};
+window.addEventListener("appinstalled", () => { ibar.hidden = true; deferred = null; });
+
+const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+if(/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone && !iSkip()){
+  document.getElementById("ihint").textContent = "Di Safari: tombol Bagikan, lalu Tambahkan ke Layar Utama.";
+  document.getElementById("iyes").hidden = true;
+  ibar.hidden = false;
+}
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+
+/* Cek syarat pemasangan, supaya kelihatan file mana yang belum terunggah */
+async function pwaStatus(){
+  const el = document.getElementById("pwastat"); if(!el) return;
+  const out = [];
+  const secure = location.protocol === "https:" || location.hostname === "localhost";
+  out.push(secure ? "HTTPS ok" : "butuh HTTPS");
+  try{ const r = await fetch("manifest.webmanifest", {cache:"no-store"}); out.push(r.ok ? "manifest ok" : "manifest " + r.status); }
+  catch(e){ out.push("manifest gagal"); }
+  try{ const r = await fetch("icon-192.png", {cache:"no-store"}); out.push(r.ok ? "ikon ok" : "ikon " + r.status); }
+  catch(e){ out.push("ikon gagal"); }
+  try{ const r = await fetch("sw.js", {cache:"no-store"}); out.push(r.ok ? "sw ok" : "sw " + r.status); }
+  catch(e){ out.push("sw gagal"); }
+  if("serviceWorker" in navigator){
+    const regs = await navigator.serviceWorker.getRegistrations();
+    out.push(regs.length ? "service worker jalan" : "service worker belum jalan");
+  }
+  el.textContent = "Status pemasangan — " + out.join(", ");
+}
 </script>
