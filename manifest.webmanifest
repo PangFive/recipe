@@ -1,0 +1,21 @@
+{
+  "name": "Buku Resep Seduh",
+  "short_name": "Resep Seduh",
+  "description": "Buku resep manual brew, racikan kopi susu, dan catatan rasio, lengkap dengan timer seduh.",
+  "lang": "id",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#F2EDE1",
+  "theme_color": "#2F3B26",
+  "categories": ["food", "lifestyle", "utilities"],
+  "icons": [
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
