@@ -1773,12 +1773,12 @@ function newRecipe(kind){
   return kind === "brew"
     ? {id:"", kind:"brew", name:"", cat:"panas", tone:"green", dose:15, dripper:"", temp:"", grind:"",
        ice:0, flavor:"", tips:"", finishLabel:"Angkat dripper", finishNote:"", drawdown:0,
-       steps:[{n:"Bloom", at:40, pour:40, ps:"center", note:""},{n:"Tuang", at:120, pour:100, ps:"spiral", note:""}]}
+       steps:[{n:"Bloom", at:40, pour:0, ps:"center", note:""},{n:"Tuang", at:120, pour:0, ps:"spiral", note:""}]}
     : kind === "mix"
     ? {id:"", kind:"mix", name:"", cat:"susu", tone:"gold", unit:"gelas", note:"",
        ing:[{nm:"", a:0, alt:""}], addon:[]}
     : {id:"", kind:"note", name:"", tone:"blue", basis:"kopi", def:100, note:"",
-       ratios:[{lb:"Air, rasio 1:8", v:8}]};
+       ratios:[{lb:"", v:0}]};
 }
 
 function editView(){
@@ -1892,8 +1892,8 @@ function ratioRow(x, i){
   return `<div class="ed-row" data-ri="${i}">
     <div class="hd"><b>${i+1}</b><button class="del" data-rm="ratio" data-i="${i}">Hapus</button></div>
     <div class="grid2">
-      <input class="r-lb" value="${esc(x.lb)}" placeholder="Label, misal Air rasio 1:8">
-      <input class="r-v" type="number" step="0.05" value="${x.v}" placeholder="Pengali">
+      <input class="r-lb" value="${esc(x.lb)}" placeholder="Label hasil, misal Air">
+      <input class="r-v" type="number" step="0.05" value="${x.v}" placeholder="Kali berapa">
     </div>
   </div>`;
 }
