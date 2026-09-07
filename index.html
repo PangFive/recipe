@@ -1418,7 +1418,8 @@ const POUR_ICONS = {
 const SPIN_ICONS = ["circle", "spiral", "rim", "stir"];
 
 const PARAMS_DEFAULT = {
-  drippers: ["Hario V60", "Hario Switch", "V60 + dripper assist", "Kalita Wave", "Origami", "April", "Chemex", "French Press", "Aeropress"],
+  drippers: ["Hario V60", "Hario Switch", "V60 + dripper assist", "Kalita Wave", "Origami",
+             "Orea V4", "Orea O1", "April", "Chemex", "French Press", "Aeropress"],
   pours: [
     {key:"center", lb:"Center pour",   desc:"tuang tegak di tengah bed",        icon:"center"},
     {key:"circle", lb:"Circular pour", desc:"putar rata di zona tengah",        icon:"circle"},
@@ -1619,6 +1620,26 @@ const ART = {
     <path d="M50 62 v6" stroke="${L}" stroke-width="3"/>
     <path d="M26 76 H74 V102 Q74 110 66 110 H34 Q26 110 26 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
     <path d="M74 84 q11 7 0 14" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- Orea V4: badan lurus, rok bergelombang lebar --- */
+  orea: L => `
+    <path d="M28 12 H72 L69 50 H31 Z" fill="rgba(169,106,36,.2)" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <ellipse cx="50" cy="13" rx="22" ry="4.5" fill="${PAL.dark}" opacity=".8"/>
+    <path d="M16 52 H84 L74 68 H26 Z" fill="${PAL.cream}" fill-opacity=".2" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <path d="M26 68 q6 7 12 0 q6 7 12 0 q6 7 12 0 q6 7 12 0" fill="none" stroke="${L}" stroke-width="3.2"/>
+    <path d="M40 68 H60 L56 82 H44 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="50" cy="77" r="3.6" fill="${PAL.coffee}"/>
+    <path d="M50 86 v5" stroke="${L}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M30 96 H70 V110 Q70 116 63 116 H37 Q30 116 30 110 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.2"/>`,
+  /* --- Orea O1: kerucut lebar, kelopak dasar --- */
+  oreao1: L => `
+    <path d="M14 18 H86 L60 52 H40 Z" fill="rgba(169,106,36,.2)" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <ellipse cx="50" cy="19" rx="34" ry="5.5" fill="${PAL.dark}" opacity=".75"/>
+    <path d="M26 34 H74 L58 50 H42 Z" fill="${PAL.dark}" opacity=".4"/>
+    <path d="M20 54 H80 L70 66 H30 Z" fill="${PAL.cream}" fill-opacity=".2" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <path d="M30 66 q6.5 8 13 0 q6.5 8 13 0 q6.5 8 13 0" fill="none" stroke="${L}" stroke-width="3.2"/>
+    <path d="M42 66 H58 L55 78 H45 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M50 82 v5" stroke="${L}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M30 92 H70 V106 Q70 112 63 112 H37 Q30 112 30 106 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.2"/>`,
   /* --- Chemex --- */
   chemex: L => `
     <path d="M30 10 H70 L58 54 L72 96 Q74 110 60 110 H40 Q26 110 28 96 L42 54 Z"
@@ -1717,12 +1738,13 @@ const ART = {
 };
 const ART_LABEL = {
   v60:"Dripper V60", switch:"Hario Switch", switchice:"Switch + gelas es", icedrip:"Dripper + gelas es",
-  kalita:"Kalita Wave", origami:"Origami", chemex:"Chemex", frenchpress:"French press", aeropress:"Aeropress",
+  kalita:"Kalita Wave", origami:"Origami", orea:"Orea V4", oreao1:"Orea O1",
+  chemex:"Chemex", frenchpress:"French press", aeropress:"Aeropress",
   latte:"Es kopi susu", mocktail:"Mocktail cold brew", mojito:"Mojito", teh:"Teh tarik",
   pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat", espresso:"Espresso", teapot:"Teko teh"
 };
 /* urutan tampil: alat seduh dulu, baru minuman dan bahan */
-const ART_ORDER = ["v60","switch","switchice","icedrip","kalita","origami","chemex","frenchpress","aeropress",
+const ART_ORDER = ["v60","switch","switchice","icedrip","kalita","origami","orea","oreao1","chemex","frenchpress","aeropress",
                    "latte","mocktail","mojito","teh","espresso","teapot","pan","bottle","jar"];
 
 /* Tebak ilustrasi dari nama dripper yang dipilih. */
@@ -1731,6 +1753,7 @@ function artFromDripper(nama, dingin){
   if(n.includes("switch")) return dingin ? "switchice" : "switch";
   if(n.includes("kalita") || n.includes("wave")) return "kalita";
   if(n.includes("origami")) return "origami";
+  if(n.includes("orea")) return (n.includes("o1") || n.includes("o 1")) ? "oreao1" : "orea";
   if(n.includes("chemex")) return "chemex";
   if(n.includes("french")) return "frenchpress";
   if(n.includes("aeropress")) return "aeropress";
