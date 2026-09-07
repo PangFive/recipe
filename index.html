@@ -88,6 +88,36 @@ try{
   };
   C.unpublish = async id => { await remove(ref(db, "shared/" + id)); };
 
+  /* peran, profil anggota, parameter aplikasi */
+  C.isAdminOf = async uid => {
+    const s = await get(ref(db, "config/admins/" + uid));
+    return s.val() === true;
+  };
+  C.anyAdmin = async () => {
+    const s = await get(ref(db, "config/admins"));
+    return s.exists() && Object.keys(s.val() || {}).length > 0;
+  };
+  C.claimAdmin = async () => { await set(ref(db, "config/admins/" + C.user.uid), true); C.admin = true; ping("auth"); };
+  C.setAdmin = async (uid, val) => { await set(ref(db, "config/admins/" + uid), val ? true : null); };
+  C.touchProfile = async () => {
+    await update(ref(db, "profiles/" + C.user.uid), {
+      name: C.user.name, email: C.user.email, photo: C.user.photo, lastSeen: Date.now()
+    });
+  };
+  C.members = async () => {
+    const [pr, ad] = await Promise.all([get(ref(db, "profiles")), get(ref(db, "config/admins"))]);
+    const p = pr.val() || {}, a = ad.val() || {};
+    return Object.keys(p).map(uid => Object.assign({uid, admin: a[uid] === true}, p[uid]))
+                 .sort((x, y) => (y.lastSeen || 0) - (x.lastSeen || 0));
+  };
+  C.dropMember = async uid => {
+    await Promise.all([remove(ref(db, "profiles/" + uid)),
+                       remove(ref(db, "users/" + uid)),
+                       remove(ref(db, "config/admins/" + uid))]);
+  };
+  C.getParams = async () => { const s = await get(ref(db, "config/params")); return s.val() || null; };
+  C.saveParams = async p => { await set(ref(db, "config/params"), p); };
+
   getRedirectResult(auth).catch(e => { C.err = e.code || e.message; ping(); });
   onAuthStateChanged(auth, u => {
     C.user = u ? {
@@ -97,7 +127,12 @@ try{
       photo: u.photoURL || ""
     } : null;
     C.ready = !!u;
-    if(u) C.err = null;
+    C.admin = false;
+    if(u){
+      C.err = null;
+      C.isAdminOf(u.uid).then(v => { C.admin = v; ping("role"); }).catch(() => {});
+      C.touchProfile().catch(() => {});
+    }
     ping("auth");
   });
 }catch(e){
@@ -1284,6 +1319,19 @@ ping();
   .dlgbtn button:nth-child(n+2){background:#fff;border:1px solid var(--line);color:var(--ink)}
   .dlgbtn button.danger{background:#fff;border:1px solid var(--red);color:var(--red)}
   .acc b{font-family:var(--serif);font-size:16px;font-weight:500}
+  .admbtn{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+  .admbtn button{
+    padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;
+    font-size:12.5px;font-weight:600
+  }
+  .admbtn button.danger{border-color:var(--red);color:var(--red)}
+  .taglist{display:flex;flex-wrap:wrap;gap:8px}
+  .tag{
+    display:inline-flex;align-items:center;gap:7px;padding:6px 8px 6px 12px;border-radius:999px;
+    background:var(--sand);font-size:13px;font-weight:600
+  }
+  .tag button{color:var(--muted);font-size:15px;line-height:1;padding:0 2px}
+  .cta input{flex:1}
   .accrow{display:flex;align-items:center;gap:12px}
   .ava{width:42px;height:42px;border-radius:50%;flex:none;object-fit:cover;background:var(--sand)}
   .ava.ini{display:grid;place-items:center;font-family:var(--serif);font-size:19px;color:var(--green)}
@@ -1334,27 +1382,38 @@ ping();
    ========================================================= */
 const DEFAULTS = [];
 
-/* jenis tuangan */
-const POURS = {
-  center:  {lb:"Center pour",   desc:"tuang tegak di tengah bed", spin:false,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="12" cy="12" r="8.5" opacity=".6"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 2v5" stroke-linecap="round"/></svg>'},
-  circle:  {lb:"Circular pour", desc:"putar rata di zona tengah", spin:true,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="6.6" stroke-dasharray="3.6 2.8"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>'},
-  spiral:  {lb:"Spiral out",    desc:"melingkar dari tengah ke pinggir", spin:true,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 12c0-1 .8-1.8 1.8-1.8s1.9.9 1.9 2.1-1.4 3.5-3.7 3.5-5.4-2-5.4-4.8S9 6 12.2 6s5.6 2.6 5.9 5.4"/></svg>'},
-  rim:     {lb:"Rinse dinding", desc:"susur dinding untuk turunkan bubuk", spin:true,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.6" opacity=".55" stroke-dasharray="2 3"/></svg>'},
-  pulse:   {lb:"Pulse",         desc:"tuang bertahap sedikit-sedikit", spin:false,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v3M12 9.5v3M12 16v3"/><circle cx="12" cy="12" r="8.5" opacity=".55"/></svg>'},
-  stir:    {lb:"Swirl / aduk",  desc:"tanpa tuang, ratakan bed", spin:true,
-    ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18.5 12a6.5 6.5 0 1 1-2.4-5"/><path d="M18.6 3.6V7h-3.4"/></svg>'}
+/* jenis tuangan: gambar ikonnya tetap di kode, daftarnya bisa diatur admin */
+const POUR_ICONS = {
+  center:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><circle cx="12" cy="12" r="8.5" opacity=".6"/><circle cx="12" cy="12" r="2.6" fill="currentColor" stroke="none"/><path d="M12 2v5" stroke-linecap="round"/></svg>',
+  circle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="6.6" stroke-dasharray="3.6 2.8"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>',
+  spiral:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 12c0-1 .8-1.8 1.8-1.8s1.9.9 1.9 2.1-1.4 3.5-3.7 3.5-5.4-2-5.4-4.8S9 6 12.2 6s5.6 2.6 5.9 5.4"/></svg>',
+  rim:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="3.6" opacity=".55" stroke-dasharray="2 3"/></svg>',
+  pulse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v3M12 9.5v3M12 16v3"/><circle cx="12" cy="12" r="8.5" opacity=".55"/></svg>',
+  stir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18.5 12a6.5 6.5 0 1 1-2.4-5"/><path d="M18.6 3.6V7h-3.4"/></svg>'
 };
-const pourOf = st => POURS[st && st.ps] || null;
+const SPIN_ICONS = ["circle", "spiral", "rim", "stir"];
+
+const PARAMS_DEFAULT = {
+  drippers: ["Hario V60", "Hario Switch", "V60 + dripper assist", "Kalita Wave", "Origami", "April", "Chemex", "French Press", "Aeropress"],
+  pours: [
+    {key:"center", lb:"Center pour",   desc:"tuang tegak di tengah bed",        icon:"center"},
+    {key:"circle", lb:"Circular pour", desc:"putar rata di zona tengah",        icon:"circle"},
+    {key:"spiral", lb:"Spiral out",    desc:"melingkar dari tengah ke pinggir", icon:"spiral"},
+    {key:"rim",    lb:"Rinse dinding", desc:"susur dinding untuk turunkan bubuk", icon:"rim"},
+    {key:"pulse",  lb:"Pulse",         desc:"tuang bertahap sedikit-sedikit",   icon:"pulse"},
+    {key:"stir",   lb:"Swirl / aduk",  desc:"tanpa tuang, ratakan bed",         icon:"stir"}
+  ]
+};
+const params = () => (store.params && store.params.pours ? store.params : PARAMS_DEFAULT);
+const pourList = () => params().pours || [];
+const dripperList = () => params().drippers || [];
+const pourOf = st => (st && st.ps) ? pourList().find(p => p.key === st.ps) : null;
+
 function pourChip(st, cls){
   const p = pourOf(st); if(!p) return "";
-  return `<span class="pchip ${cls||""} ${p.spin?"sp":""}">${p.ic}${p.lb}</span>`;
+  const ic = POUR_ICONS[p.icon] || POUR_ICONS.circle;
+  return `<span class="pchip ${cls || ""} ${SPIN_ICONS.includes(p.icon) ? "sp" : ""}">${ic}${esc(p.lb)}</span>`;
 }
-
 
 const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
               coldbrew:"Cold brew", teh:"Teh & mojito", sirup:"Sirup"};
@@ -1362,7 +1421,7 @@ const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
 /* =========================================================
    2. STORE
    ========================================================= */
-const store = { custom:{}, tombs:{}, favs:[], sound:true, interval:0, last:null, shares:{}, metaAt:1 };
+const store = { custom:{}, tombs:{}, favs:[], sound:true, interval:0, last:null, shares:{}, metaAt:1, params:null };
 let dirty = false;
 
 const KEY = "resep:v2";
@@ -1470,7 +1529,8 @@ function render(){
     : v === "detail" ? detailView()
     : v === "edit" ? editView()
     : v === "explore" ? exploreView()
-    : v === "remote" ? remoteView() : homeView();
+    : v === "remote" ? remoteView()
+    : v === "admin" ? adminView() : homeView();
   app.innerHTML += navHTML(v);
   bind(v);
   if(v === "detail" || v === "edit") window.scrollTo(0, y);
@@ -2002,12 +2062,22 @@ async function syncNow(){
     store.owner = c.user.uid;
 
     SYNC.status = "syncing"; SYNC.err = null; refreshSync();
+    let perluGambar = false;
+    if(c.getParams){
+      try{
+        const p = await c.getParams();
+        if(p && JSON.stringify(p) !== JSON.stringify(store.params)){ store.params = p; perluGambar = true; }
+      }catch(e){}
+    }
+    if(c.anyAdmin && ADM.anyAdmin === null){
+      try{ ADM.anyAdmin = await c.anyAdmin(); perluGambar = true; }catch(e){}
+    }
     const R = await c.pull();
     const { patch, changed } = mergeRemote(R);
     if(Object.keys(patch).length) await c.push(patch);
     await saveStore(true);
     SYNC.status = "ok"; SYNC.at = Date.now();
-    if(changed) render();
+    if(changed || perluGambar) render();
     startWatch();
   }catch(e){
     SYNC.status = "err"; SYNC.err = e.message || String(e);
@@ -2073,7 +2143,127 @@ function accountCard(){
       <span class="accbd"><b>${esc(c.user.name)}</b><span class="muted">${esc(c.user.email)}</span></span>
       <button class="lnk" data-signout>Keluar</button>
     </div>
-    <p class="muted" id="syncline">${syncText()}</p></div>`;
+    <p class="muted" id="syncline">${syncText()}</p>
+    ${c.admin ? '<div class="cta"><button class="btn ghost" style="flex:1" data-admin>Kelola aplikasi</button></div>' : ""}
+    ${(!c.admin && ADM.anyAdmin === false) ? '<div class="cta"><button class="btn" data-claim>Jadikan saya admin</button></div>' : ""}
+    </div>`;
+}
+
+
+/* ============ halaman admin ============ */
+const ADM = { tab:"member", members:null, shared:null, loading:false, err:null, anyAdmin:null, draft:null };
+
+async function loadAdmin(){
+  const c = cloud(); if(!c.members) return;
+  ADM.loading = true; ADM.err = null; render();
+  try{
+    const [m, sh, pr] = await Promise.all([c.members(), c.list(), c.getParams()]);
+    ADM.members = m; ADM.shared = sh;
+    if(pr){ store.params = pr; saveStore(true); }
+    ADM.draft = JSON.parse(JSON.stringify(params()));
+  }catch(e){ ADM.err = e.message || String(e); }
+  ADM.loading = false; render();
+}
+
+function adminView(){
+  const c = cloud();
+  if(!c.admin) return `<div class="wrap"><div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button></div>
+    <p class="empty">Halaman ini hanya untuk admin.</p></div>`;
+
+  const tabs = [["member","Member"],["shared","Resep publik"],["param","Parameter"]]
+    .map(([k,v]) => `<button class="chip" aria-pressed="${ADM.tab===k}" data-atab="${k}">${v}</button>`).join("");
+
+  let body = "";
+  if(ADM.loading) body = `<p class="empty">Memuat data...</p>`;
+  else if(ADM.err) body = `<p class="empty">Gagal memuat: ${esc(ADM.err)}</p>`;
+  else if(ADM.tab === "member") body = adminMembers();
+  else if(ADM.tab === "shared") body = adminShared();
+  else body = adminParams();
+
+  return `<div class="wrap">
+    <div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button><span class="sp"></span>
+      <button class="lnk" data-areload>Muat ulang</button></div>
+    <h1 class="hello" style="margin-top:6px">Kelola</h1>
+    <div class="chips">${tabs}</div>
+    ${body}
+  </div>`;
+}
+
+function adminMembers(){
+  const c = cloud(), list = ADM.members || [];
+  if(!list.length) return `<p class="empty">Belum ada anggota terdaftar.</p>`;
+  return list.map(m => `<div class="row" style="align-items:flex-start">
+    ${m.photo ? `<img class="ava" src="${esc(m.photo)}" alt="">`
+              : `<span class="ava ini">${esc((m.name || "?").slice(0,1).toUpperCase())}</span>`}
+    <span class="bd">
+      <b>${esc(m.name || "Tanpa nama")}${m.uid === c.user.uid ? " (kamu)" : ""}</b>
+      <span>${esc(m.email || "")}</span>
+      <span>${m.lastSeen ? "Terakhir aktif " + tgl(m.lastSeen) : ""}</span>
+      <span class="admbtn">
+        <button data-adm="${esc(m.uid)}" data-val="${m.admin ? "0" : "1"}">${m.admin ? "Cabut admin" : "Jadikan admin"}</button>
+        ${m.uid === c.user.uid ? "" : `<button class="danger" data-dropm="${esc(m.uid)}">Hapus anggota</button>`}
+      </span>
+    </span>
+    ${m.admin ? '<span class="mine">admin</span>' : ""}
+  </div>`).join("");
+}
+
+function adminShared(){
+  const list = ADM.shared || [];
+  if(!list.length) return `<p class="empty">Belum ada resep yang dibagikan.</p>`;
+  return list.map(it => `<div class="row" style="align-items:flex-start">
+    <span class="ic ${(it.data && it.data.tone) || ""}">${artFor(it.data || {kind:it.kind}, 31, (it.data && it.data.tone) ? "dark" : "light")}</span>
+    <span class="bd">
+      <b>${esc(it.name)}</b>
+      <span>${kindName(it.kind)}, oleh ${esc(it.by || "Anonim")}, ${tgl(it.updatedAt)}</span>
+      <span class="admbtn">
+        <button data-remote="${esc(it.key)}">Lihat</button>
+        <button class="danger" data-delshare="${esc(it.key)}">Hapus dari jelajah</button>
+      </span>
+    </span>
+  </div>`).join("");
+}
+
+function adminParams(){
+  const d = ADM.draft || params();
+  return `
+  <p class="sub">Daftar dripper</p>
+  <div class="card">
+    <div class="taglist">${(d.drippers || []).map((x,i) =>
+      `<span class="tag">${esc(x)}<button data-deldrip="${i}" aria-label="Hapus">×</button></span>`).join("")}</div>
+    <div class="cta" style="margin-top:12px">
+      <input id="newdrip" placeholder="Tambah dripper, misal Origami">
+      <button class="btn ghost" data-adddrip>Tambah</button>
+    </div>
+  </div>
+
+  <p class="sub">Jenis tuangan</p>
+  ${(d.pours || []).map((p,i) => `<div class="ed-row">
+    <div class="hd"><b>${esc(p.lb || p.key)}</b><button class="del" data-delpour="${i}">Hapus</button></div>
+    <div class="grid2">
+      <span><label>Kode</label><input class="p-key" data-i="${i}" value="${esc(p.key)}"></span>
+      <span><label>Ikon</label>
+        <select class="p-icon" data-i="${i}">${Object.keys(POUR_ICONS).map(k =>
+          `<option value="${k}" ${p.icon===k?"selected":""}>${k}</option>`).join("")}</select></span>
+    </div>
+    <div style="margin-top:8px"><label>Nama tampil</label><input class="p-lb" data-i="${i}" value="${esc(p.lb)}"></div>
+    <div style="margin-top:8px"><label>Keterangan</label><input class="p-desc" data-i="${i}" value="${esc(p.desc || "")}"></div>
+    <div style="margin-top:10px">${pourChip({ps:p.key})}</div>
+  </div>`).join("")}
+  <button class="add" data-addpour>+ Tambah jenis tuangan</button>
+
+  <div class="cta"><button class="btn" data-saveparam>Simpan parameter</button></div>
+  <p class="muted" style="font-size:12.5px;margin-top:10px">Parameter berlaku untuk semua pengguna. Resep lama yang memakai kode yang dihapus akan kehilangan label jenis tuangannya.</p>`;
+}
+
+function collectParams(){
+  const d = ADM.draft;
+  app.querySelectorAll(".p-key").forEach(el => d.pours[+el.dataset.i].key = el.value.trim());
+  app.querySelectorAll(".p-lb").forEach(el => d.pours[+el.dataset.i].lb = el.value.trim());
+  app.querySelectorAll(".p-desc").forEach(el => d.pours[+el.dataset.i].desc = el.value.trim());
+  app.querySelectorAll(".p-icon").forEach(el => d.pours[+el.dataset.i].icon = el.value);
+  d.pours = d.pours.filter(p => p.key && p.lb);
+  return d;
 }
 
 /* ============ berbagi & jelajah ============ */
@@ -2244,7 +2434,9 @@ function editView(){
       <div class="field"><label>Grind</label><input id="f-grind" value="${esc(d.grind)}" placeholder="FM 10.5"></div>
       <div class="field"><label>Drawdown</label><input id="f-draw" value="${d.drawdown ? mmss(d.drawdown) : ""}" placeholder="2:30"></div>
     </div>
-    <div class="field"><label>Dripper / alat</label><input id="f-dripper" value="${esc(d.dripper)}" placeholder="Hario Switch"></div>
+    <div class="field"><label>Dripper / alat</label>
+      <input id="f-dripper" list="dripperlist" value="${esc(d.dripper)}" placeholder="Hario Switch">
+      <datalist id="dripperlist">${dripperList().map(x => `<option value="${esc(x)}"></option>`).join("")}</datalist></div>
     <div class="field"><label>Karakter rasa</label><input id="f-flavor" value="${esc(d.flavor)}" placeholder="Clean, sweet & balanced"></div>
 
     <p class="sub">Langkah tuang</p>
@@ -2317,7 +2509,7 @@ function stepRow(s, i){
     <div style="margin-top:8px"><label>Jenis tuangan</label>
       <select class="s-ps">
         <option value="">— belum diatur —</option>
-        ${Object.entries(POURS).map(([k,v]) => `<option value="${k}" ${s.ps===k?"selected":""}>${v.lb} — ${v.desc}</option>`).join("")}
+        ${pourList().map(v => `<option value="${v.key}" ${s.ps===v.key?"selected":""}>${esc(v.lb)}${v.desc ? " — " + esc(v.desc) : ""}</option>`).join("")}
       </select></div>
     <input class="s-note" style="margin-top:8px" value="${esc(s.note||"")}" placeholder="Catatan, misal fast 2 set">
   </div>`;
@@ -2418,6 +2610,78 @@ function bind(v){
   const cp = app.querySelector("[data-copyto]");
   if(cp) cp.onclick = () => { const it = state.remote[cp.dataset.copyto]; if(it) saveCopy(it.data); };
   app.querySelectorAll("[data-share]").forEach(b => b.onclick = () => toggleShare(b.dataset.share));
+  const adm = app.querySelector("[data-admin]");
+  if(adm) adm.onclick = () => { go("admin"); loadAdmin(); };
+  const clm = app.querySelector("[data-claim]");
+  if(clm) clm.onclick = async () => {
+    clm.textContent = "Memproses...";
+    try{ await cloud().claimAdmin(); ADM.anyAdmin = true; render(); }
+    catch(e){ alert("Gagal: " + (e.message || e)); render(); }
+  };
+
+  if(v === "admin"){
+    app.querySelectorAll("[data-atab]").forEach(b => b.onclick = () => { ADM.tab = b.dataset.atab; render(); });
+    const rl = app.querySelector("[data-areload]");
+    if(rl) rl.onclick = loadAdmin;
+
+    app.querySelectorAll("[data-adm]").forEach(b => b.onclick = async () => {
+      b.textContent = "..."; 
+      try{ await cloud().setAdmin(b.dataset.adm, b.dataset.val === "1"); await loadAdmin(); }
+      catch(e){ alert("Gagal: " + (e.message || e)); render(); }
+    });
+    app.querySelectorAll("[data-dropm]").forEach(b => b.onclick = async () => {
+      const pilih = await askChoice("Hapus anggota",
+        "Profil dan seluruh resep pribadi anggota ini akan dihapus dari server. Akun Google-nya sendiri tidak bisa dihapus dari sini, dan resep yang sudah tersimpan di perangkatnya tetap ada.",
+        [{label:"Hapus", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
+      if(pilih !== "y") return;
+      try{ await cloud().dropMember(b.dataset.dropm); await loadAdmin(); }
+      catch(e){ alert("Gagal: " + (e.message || e)); }
+    });
+    app.querySelectorAll("[data-delshare]").forEach(b => b.onclick = async () => {
+      const pilih = await askChoice("Hapus dari jelajah",
+        "Resep ini tidak lagi bisa dibuka lewat tautan. Salinan di perangkat pemiliknya tidak terpengaruh.",
+        [{label:"Hapus", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
+      if(pilih !== "y") return;
+      try{
+        await cloud().unpublish(b.dataset.delshare);
+        Object.keys(store.shares).forEach(k => { if(store.shares[k] === b.dataset.delshare) delete store.shares[k]; });
+        store.metaAt = Date.now(); saveStore();
+        await loadAdmin();
+      }catch(e){ alert("Gagal: " + (e.message || e)); }
+    });
+
+    const ad = app.querySelector("[data-adddrip]");
+    if(ad) ad.onclick = () => {
+      const el = app.querySelector("#newdrip"), v = el.value.trim();
+      if(!v) return;
+      ADM.draft = collectParams();
+      if(!ADM.draft.drippers.includes(v)) ADM.draft.drippers.push(v);
+      render();
+    };
+    app.querySelectorAll("[data-deldrip]").forEach(b => b.onclick = () => {
+      ADM.draft = collectParams(); ADM.draft.drippers.splice(+b.dataset.deldrip, 1); render();
+    });
+    const ap = app.querySelector("[data-addpour]");
+    if(ap) ap.onclick = () => {
+      ADM.draft = collectParams();
+      ADM.draft.pours.push({key:"", lb:"", desc:"", icon:"circle"});
+      render();
+    };
+    app.querySelectorAll("[data-delpour]").forEach(b => b.onclick = () => {
+      ADM.draft = collectParams(); ADM.draft.pours.splice(+b.dataset.delpour, 1); render();
+    });
+    const sp = app.querySelector("[data-saveparam]");
+    if(sp) sp.onclick = async () => {
+      const p = collectParams();
+      sp.textContent = "Menyimpan...";
+      try{
+        await cloud().saveParams(p);
+        store.params = JSON.parse(JSON.stringify(p)); saveStore(true);
+        sp.textContent = "Tersimpan";
+      }catch(e){ alert("Gagal: " + (e.message || e)); sp.textContent = "Simpan parameter"; }
+    };
+  }
+
   app.querySelectorAll("[data-signin]").forEach(b => b.onclick = () => { b.textContent = "Membuka..."; cloud().signIn(); });
   const so = app.querySelector("[data-signout]");
   if(so) so.onclick = async () => {
@@ -2472,7 +2736,8 @@ function bind(v){
   };
   const back = app.querySelector("[data-back]");
   if(back) back.onclick = () => go(
-    state.view === "remote" ? "explore"
+    state.view === "admin" ? "home"
+    : state.view === "remote" ? "explore"
     : (state.view === "edit" && state.draft && state.draft.id) ? "detail" : "list");
 
   if(v === "list"){
