@@ -60,7 +60,7 @@ try{
   /* data pribadi: users/{uid} */
   C.pull  = async () => { const s = await get(ref(db, "users/" + C.user.uid)); return s.val() || {}; };
   C.push  = async patch => { await update(ref(db, "users/" + C.user.uid), patch); };
-  C.watch = cb => onValue(ref(db, "users/" + C.user.uid), s => cb(s.val() || {}), () => {});
+  C.watch = cb => onValue(ref(db, "users/" + C.user.uid), s => cb(s.val() || {}), () => {});  /* mengembalikan fungsi berhenti */
 
   /* resep yang dibagikan: shared/{id} */
   C.list = async () => {
@@ -1267,6 +1267,22 @@ ping();
   @keyframes drift{from{transform:translateX(0)}to{transform:translateX(90px)}}
   .waveG{animation:drift 3.2s linear infinite}
   .muted{color:var(--muted)}
+  .dlgbg{
+    position:fixed;inset:0;z-index:60;background:rgba(29,32,25,.5);
+    display:flex;align-items:flex-end;justify-content:center;padding:16px;
+  }
+  .dlg{
+    width:100%;max-width:420px;background:var(--card);border-radius:22px;padding:20px;
+    box-shadow:0 12px 40px rgba(29,32,25,.28)
+  }
+  .dlg b{font-family:var(--serif);font-size:19px;font-weight:500}
+  .dlg p{margin:8px 0 0;color:var(--muted);font-size:13.5px}
+  .dlgbtn{display:flex;flex-direction:column;gap:9px;margin-top:16px}
+  .dlgbtn button{
+    padding:14px;border-radius:14px;background:var(--green);color:#F2EDE1;font-weight:600;font-size:14.5px
+  }
+  .dlgbtn button:nth-child(n+2){background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .dlgbtn button.danger{background:#fff;border:1px solid var(--red);color:var(--red)}
   .acc b{font-family:var(--serif);font-size:16px;font-weight:500}
   .accrow{display:flex;align-items:center;gap:12px}
   .ava{width:42px;height:42px;border-radius:50%;flex:none;object-fit:cover;background:var(--sand)}
@@ -1885,6 +1901,36 @@ function noteDetail(r, g){
 
 
 
+
+/* ============ dialog pilihan ============ */
+const dlgRoot = document.createElement("div");
+document.body.appendChild(dlgRoot);
+function askChoice(title, text, options){
+  return new Promise(resolve => {
+    dlgRoot.innerHTML = `<div class="dlgbg"><div class="dlg">
+      <b>${esc(title)}</b><p>${esc(text)}</p>
+      <div class="dlgbtn">${options.map((o,i) =>
+        `<button class="${o.tone || ""}" data-i="${i}">${esc(o.label)}</button>`).join("")}</div>
+    </div></div>`;
+    dlgRoot.querySelectorAll("[data-i]").forEach(b => b.onclick = () => {
+      const v = options[+b.dataset.i].value;
+      dlgRoot.innerHTML = ""; resolve(v);
+    });
+    dlgRoot.querySelector(".dlgbg").onclick = e => {
+      if(e.target === dlgRoot.querySelector(".dlgbg")){ dlgRoot.innerHTML = ""; resolve(null); }
+    };
+  });
+}
+
+/* Kosongkan data di perangkat tanpa mengirim penghapusan ke server. */
+async function wipeLocal(){
+  stopWatch();
+  store.custom = {}; store.tombs = {}; store.favs = []; store.shares = {};
+  store.metaAt = 1; store.owner = null; store.last = null;
+  await saveStore(true);
+  render();
+}
+
 /* ============ sinkronisasi dua arah ============ */
 const SYNC = { status:"idle", at:0, err:null, timer:null, watching:false, busy:false };
 
@@ -1939,8 +1985,23 @@ async function syncNow(){
   const c = cloud();
   if(!c.ready || !c.pull || SYNC.busy) return;
   if(!navigator.onLine){ SYNC.status = "offline"; refreshSync(); return; }
-  SYNC.busy = true; SYNC.status = "syncing"; SYNC.err = null; refreshSync();
+
+  SYNC.busy = true;   /* dikunci sejak awal supaya tidak ada sinkron ganda saat dialog terbuka */
   try{
+    /* Akun berbeda dari pemilik data di perangkat ini: tanya dulu. */
+    if(store.owner && store.owner !== c.user.uid && Object.keys(store.custom).length){
+      const pilih = await askChoice(
+        "Data milik akun lain",
+        "Perangkat ini menyimpan resep dari akun sebelumnya. Mau digabungkan ke " + (c.user.name || "akun ini") + ", atau dikosongkan dulu?",
+        [{label:"Gabungkan", value:"merge"},
+         {label:"Kosongkan dulu", value:"wipe", tone:"danger"},
+         {label:"Nanti saja", value:null}]);
+      if(pilih === null) return;
+      if(pilih === "wipe") await wipeLocal();
+    }
+    store.owner = c.user.uid;
+
+    SYNC.status = "syncing"; SYNC.err = null; refreshSync();
     const R = await c.pull();
     const { patch, changed } = mergeRemote(R);
     if(Object.keys(patch).length) await c.push(patch);
@@ -1950,16 +2011,21 @@ async function syncNow(){
     startWatch();
   }catch(e){
     SYNC.status = "err"; SYNC.err = e.message || String(e);
+  }finally{
+    SYNC.busy = false; refreshSync();
   }
-  SYNC.busy = false; refreshSync();
 }
 
 /* Dengarkan perubahan dari perangkat lain secara langsung. */
+function stopWatch(){
+  if(SYNC.unwatch){ try{ SYNC.unwatch(); }catch(e){} }
+  SYNC.unwatch = null; SYNC.watching = false;
+}
 function startWatch(){
   const c = cloud();
   if(SYNC.watching || !c.watch || !c.ready) return;
   SYNC.watching = true;
-  c.watch(async R => {
+  SYNC.unwatch = c.watch(async R => {
     if(SYNC.busy) return;
     const { patch, changed } = mergeRemote(R);
     if(changed || Object.keys(patch).length){
@@ -2354,7 +2420,19 @@ function bind(v){
   app.querySelectorAll("[data-share]").forEach(b => b.onclick = () => toggleShare(b.dataset.share));
   app.querySelectorAll("[data-signin]").forEach(b => b.onclick = () => { b.textContent = "Membuka..."; cloud().signIn(); });
   const so = app.querySelector("[data-signout]");
-  if(so) so.onclick = async () => { SYNC.watching = false; await cloud().signOut(); render(); };
+  if(so) so.onclick = async () => {
+    const pilih = await askChoice(
+      "Keluar dari akun",
+      "Resepmu sudah tersimpan di akun dan bisa dibuka lagi setelah masuk. Mau data di perangkat ini ikut dihapus?",
+      [{label:"Keluar saja", value:"keep"},
+       {label:"Keluar dan hapus data perangkat", value:"wipe", tone:"danger"},
+       {label:"Batal", value:null}]);
+    if(pilih === null) return;
+    stopWatch();
+    if(pilih === "wipe") await wipeLocal();
+    await cloud().signOut();
+    render();
+  };
   const ra = app.querySelector("[data-retryauth]");
   if(ra) ra.onclick = () => { ra.textContent = "Mencoba..."; if(cloud().retry) cloud().retry(); };
   const cl = app.querySelector("[data-copy]");
