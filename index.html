@@ -1440,7 +1440,7 @@ function pourChip(st, cls){
   return `<span class="pchip ${cls || ""} ${SPIN_ICONS.includes(p.icon) ? "sp" : ""}">${ic}${esc(p.lb)}</span>`;
 }
 
-const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", susu:"Es kopi susu",
+const CATS = {panas:"Seduh panas", dingin:"Seduh dingin", espresso:"Espresso", susu:"Es kopi susu",
               coldbrew:"Cold brew", teh:"Teh & mojito", sirup:"Sirup"};
 
 /* =========================================================
@@ -1507,7 +1507,7 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;
 const cums = r => { let c = 0; return r.steps.map(s => c += (+s.pour || 0)); };
 const waterOf = r => cums(r).slice(-1)[0] || 0;
 const totalTime = r => Math.max(r.drawdown || 0, r.steps.length ? r.steps[r.steps.length-1].at : 0);
-const kindName = k => k === "brew" ? "Resep seduh" : k === "mix" ? "Racikan" : "Catatan";
+const kindName = k => k === "brew" ? "Resep seduh" : k === "esp" ? "Resep espresso" : k === "mix" ? "Racikan" : "Catatan";
 
 /* =========================================================
    4. SOUND
@@ -1719,6 +1719,18 @@ const ART = {
     <path d="M32 24 H68 V102 Q68 110 60 110 H40 Q32 110 32 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
     <path d="M32 52 H68" stroke="${PAL.cream}" stroke-width="2.4" opacity=".55"/>
     <path d="M38 66 h16 M38 76 h11" stroke="${PAL.cream}" stroke-width="2.4" opacity=".45"/>`,
+  /* --- mesin espresso --- */
+  espmachine: L => `
+    <path d="M18 14 H82 V56 H18 Z" fill="rgba(169,106,36,.2)" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <rect x="28" y="22" width="22" height="16" rx="3" fill="${PAL.dark}"/>
+    <circle cx="66" cy="30" r="7" fill="none" stroke="${L}" stroke-width="3"/>
+    <path d="M18 56 H82 V64 H18 Z" fill="${L}"/>
+    <path d="M34 64 H66 V72 H34 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M66 68 H84" stroke="${L}" stroke-width="4" stroke-linecap="round"/>
+    <path d="M44 72 v6 M56 72 v6" stroke="${PAL.coffee}" stroke-width="3" stroke-linecap="round"/>
+    <path d="M36 88 H64 V102 Q64 108 57 108 H43 Q36 108 36 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.2"/>
+    <path d="M64 93 q9 6 0 11" stroke="${L}" stroke-width="3" fill="none"/>
+    <path d="M14 112 H86" stroke="${L}" stroke-width="3.4" stroke-linecap="round"/>`,
   /* --- espresso: portafilter --- */
   espresso: L => `
     <path d="M20 34 H74 V44 Q74 54 62 54 H32 Q20 54 20 44 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3.4"/>
@@ -1741,11 +1753,12 @@ const ART_LABEL = {
   kalita:"Kalita Wave", origami:"Origami", orea:"Orea V4", oreao1:"Orea O1",
   chemex:"Chemex", frenchpress:"French press", aeropress:"Aeropress",
   latte:"Es kopi susu", mocktail:"Mocktail cold brew", mojito:"Mojito", teh:"Teh tarik",
-  pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat", espresso:"Espresso", teapot:"Teko teh"
+  pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat",
+  espmachine:"Mesin espresso", espresso:"Portafilter", teapot:"Teko teh"
 };
 /* urutan tampil: alat seduh dulu, baru minuman dan bahan */
 const ART_ORDER = ["v60","switch","switchice","icedrip","kalita","origami","orea","oreao1","chemex","frenchpress","aeropress",
-                   "latte","mocktail","mojito","teh","espresso","teapot","pan","bottle","jar"];
+                   "espmachine","espresso","latte","mocktail","mojito","teh","teapot","pan","bottle","jar"];
 
 /* Tebak ilustrasi dari nama dripper yang dipilih. */
 function artFromDripper(nama, dingin){
@@ -1764,6 +1777,7 @@ function artFromDripper(nama, dingin){
 
 function artKey(r){
   if(r.art && ART[r.art]) return r.art;
+  if(r.kind === "esp") return "espmachine";
   if(r.kind === "brew"){
     const tebak = artFromDripper(r.dripper, !!r.ice);
     if(tebak) return tebak;
@@ -1822,6 +1836,7 @@ function todayText(){
 function homeView(){
   const all = recipes();
   const brews = all.filter(r => r.kind === "brew");
+  const esps = all.filter(r => r.kind === "esp");
   const mixes = all.filter(r => r.kind === "mix");
   const notes = all.filter(r => r.kind === "note");
   const pick = byId(store.last) || brews.find(r => (r.stars || 0) >= 3) || brews[0];
@@ -1859,16 +1874,22 @@ function homeView(){
         <span class="t-num">${brews.length}</span>
         <span class="t-sub">manual brew bertimer</span>
       </button>
+      <button class="tile green" data-view="list" data-kind="esp">
+        <span class="t-lbl">Espresso</span>
+        <span class="t-num">${esps.length}</span>
+        <span class="t-sub">dose, yield, dan waktu shot</span>
+      </button>
+
       <button class="tile gold" data-view="list" data-kind="mix">
         <span class="t-lbl">Racikan</span>
         <span class="t-num">${mixes.length}</span>
         <span class="t-sub">kopi susu, cold brew, sirup</span>
       </button>
 
-      <button class="tile red span2" data-view="notes">
-        <span class="t-lbl">Catatan &amp; rasio</span>
+      <button class="tile red" data-view="notes">
+        <span class="t-lbl">Catatan</span>
         <span class="t-num">${notes.length}</span>
-        <span class="t-sub">konsentrat dan larutan dasar, bukan resep jadi</span>
+        <span class="t-sub">konsentrat dan rasio dasar</span>
       </button>
     </div>
 
@@ -1883,6 +1904,10 @@ function homeView(){
     <button class="row" data-new="brew">
       <span class="ic green">${ICON.plus}</span>
       <span class="bd"><b>Resep seduh baru</b><span>langkah, waktu, suhu, dripper, tips</span></span>
+    </button>
+    <button class="row" data-new="esp">
+      <span class="ic red">${ICON.plus}</span>
+      <span class="bd"><b>Resep espresso baru</b><span>dose, yield, waktu, fase</span></span>
     </button>
     <button class="row" data-new="mix">
       <span class="ic gold">${ICON.plus}</span>
@@ -1902,6 +1927,7 @@ function homeView(){
 
 function miniMeta(r){
   if(r.kind === "brew") return fmt(r.dose) + " g, " + mmss(totalTime(r));
+  if(r.kind === "esp") return fmt(r.dose) + " → " + fmt(r.out) + " g";
   if(r.kind === "mix") return r.ing.length + " bahan";
   return "rasio";
 }
@@ -1918,6 +1944,11 @@ function listMeta(r){
     if(r.dripper) bits.push(r.dripper);
     return bits.join(" · ");
   }
+  if(r.kind === "esp"){
+    const b = [fmt(r.dose) + " g masuk", fmt(r.out) + " g keluar", "1:" + fmt(espRatio(r)), fmt(r.time) + " dtk"];
+    if(r.machine) b.push(r.machine);
+    return b.join(" · ");
+  }
   if(r.kind === "mix") return r.ing.length + " bahan, per " + r.unit;
   return "Catatan rasio dari berat " + r.basis;
 }
@@ -1926,13 +1957,14 @@ function listView(){
   const q = state.q.trim().toLowerCase();
   let list = recipes().filter(r => r.kind !== "note");
   if(state.cat === "brew") list = list.filter(r => r.kind === "brew");
+  else if(state.cat === "esp") list = list.filter(r => r.kind === "esp");
   else if(state.cat === "mix") list = list.filter(r => r.kind === "mix");
   else if(state.cat !== "all") list = list.filter(r => r.cat === state.cat);
   if(q) list = list.filter(r => r.name.toLowerCase().includes(q) ||
       (r.ing || []).some(i => i.nm.toLowerCase().includes(q)) ||
       (r.dripper || "").toLowerCase().includes(q));
 
-  const chips = [["all","Semua"],["brew","Seduh"],["mix","Racikan"]]
+  const chips = [["all","Semua"],["brew","Seduh"],["esp","Espresso"],["mix","Racikan"]]
     .concat(Object.entries(CATS))
     .map(([k,v]) => `<button class="chip" aria-pressed="${state.cat===k}" data-cat="${k}">${v}</button>`).join("");
 
@@ -1961,7 +1993,7 @@ function detailView(){
   const r = byId(state.id);
   if(!r) return `<div class="wrap"><p class="empty">Resep tidak ditemukan.</p></div>`;
   if(state.scale[r.id] === undefined)
-    state.scale[r.id] = r.kind === "brew" ? r.dose : r.kind === "note" ? r.def : 1;
+    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose : r.kind === "note" ? r.def : 1;
   const v = state.scale[r.id];
   const fav = store.favs.includes(r.id);
 
@@ -1978,6 +2010,7 @@ function detailView(){
     </div>`;
 
   if(r.kind === "brew") return `<div class="wrap">${head}${brewDetail(r, v)}</div>`;
+  if(r.kind === "esp")  return `<div class="wrap">${head}${espDetail(r, v)}</div>`;
   if(r.kind === "mix")  return `<div class="wrap">${head}${mixDetail(r, v)}</div>`;
   return `<div class="wrap">${head}${noteDetail(r, v)}</div>`;
 }
@@ -2029,6 +2062,50 @@ function brewDetail(r, dose){
 
   <div class="cta">
     <button class="btn" data-brew>${ICON.play} Mulai seduh</button>
+    <button class="btn ghost" data-edit>Edit</button>
+  </div>
+  ${state.view === "detail" ? shareCard(r) : ""}`;
+}
+
+function espDetail(r, dose){
+  const k = dose / (r.dose || 1);
+  const out = (r.out || 0) * k;
+  const ph = espPhases(r);
+  const specs = [["Dose", fmt(dose) + " g"], ["Yield", fmt(out) + " g"],
+                 ["Rasio", "1:" + fmt(espRatio(r))], ["Waktu", fmt(r.time || 0) + " dtk"],
+                 ["Grind", r.grind || "—"], ["Basket", r.basket || "—"],
+                 ["Suhu", r.temp || "—"], ["Pre-infusi", r.preinf ? fmt(r.preinf) + " dtk" : "—"]];
+
+  const items = ph.map((p, i) => `
+    <div class="tl-item">
+      <span class="badge">${fmt(i ? ph[i-1].at : 0)}s</span>
+      <span class="tl-bd"><span class="amt">${fmt(p.at)} dtk</span><b>${esc(p.n)}</b>
+        <p>${esc(p.note || "")}</p></span>
+    </div>`).join("");
+
+  return `
+  <div class="specs">${specs.slice(0,4).map(x => `<span class="spec"><i>${x[0]}</i><b>${x[1]}</b></span>`).join("")}</div>
+  <div class="specs">${specs.slice(4).map(x => `<span class="spec"><i>${x[0]}</i><b>${x[1]}</b></span>`).join("")}</div>
+  ${r.machine ? `<div class="card"><b>Alat</b><p class="muted">${esc(r.machine)}</p></div>` : ""}
+
+  <div class="card">
+    <div class="dose">
+      <span><span class="t-lbl" style="color:var(--faint)">Dose masuk</span><br>
+        <span class="dose-v">${fmt(dose)}<small>gram</small></span></span>
+      <span class="stepper"><button data-d="-0.5">−</button><button data-d="0.5">+</button></span>
+    </div>
+    <div class="yields">
+      <span><b>${fmt(out)} g</b><span>target yield</span></span>
+      <span><b>${fmt(r.time || 0)} dtk</b><span>target waktu</span></span>
+      <span><b>1:${fmt(espRatio(r))}</b><span>rasio</span></span>
+    </div>
+  </div>
+
+  <div class="tl">${items}</div>
+  ${r.tips ? `<div class="tip ${r.tone === "blue" ? "blue" : ""}"><h4>${ICON.bulb} Tips</h4><p>${esc(r.tips)}</p></div>` : ""}
+
+  <div class="cta">
+    <button class="btn" data-shot>${ICON.play} Mulai shot</button>
     <button class="btn ghost" data-edit>Edit</button>
   </div>
   ${state.view === "detail" ? shareCard(r) : ""}`;
@@ -2103,6 +2180,16 @@ async function wipeLocal(){
   render();
 }
 
+
+/* ============ espresso ============ */
+const espRatio = r => (r.out || 0) / (r.dose || 1);
+function espPhases(r){
+  if(r.phases && r.phases.length) return r.phases.slice().sort((a,b) => a.at - b.at);
+  const ph = [];
+  if(r.preinf > 0) ph.push({n:"Pre-infusi", at:+r.preinf, note:"tekanan rendah, basahi puck"});
+  ph.push({n:"Ekstraksi", at:+(r.time || 28), note:"tarik sampai target yield"});
+  return ph;
+}
 
 /* ============ popup pilihan (pengganti dropdown bawaan) ============ */
 const TONE_LABEL = {green:"Hijau", blue:"Biru", red:"Merah bata", gold:"Kuning"};
@@ -2508,7 +2595,7 @@ function remoteView(){
     <p class="empty">Memuat resep...</p></div>`;
   const r = it.data;
   if(state.scale[r.id] === undefined)
-    state.scale[r.id] = r.kind === "brew" ? r.dose : r.kind === "note" ? r.def : 1;
+    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose : r.kind === "note" ? r.def : 1;
   const v = state.scale[r.id];
   const head = `<div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button></div>
     <div class="head ${r.tone || ""}">
@@ -2518,7 +2605,9 @@ function remoteView(){
       <span class="art">${artFor(r, 88, r.tone === "gold" ? "light" : "dark")}</span>
     </div>
     <div class="cta"><button class="btn" data-copyto="${esc(it.key)}">Simpan ke buku saya</button></div>`;
-  const body = r.kind === "brew" ? brewDetail(r, v) : r.kind === "mix" ? mixDetail(r, v) : noteDetail(r, v);
+  const body = r.kind === "brew" ? brewDetail(r, v)
+             : r.kind === "esp" ? espDetail(r, v)
+             : r.kind === "mix" ? mixDetail(r, v) : noteDetail(r, v);
   return `<div class="wrap">${head}${body}</div>`;
 }
 
@@ -2580,6 +2669,9 @@ function navHTML(v){
    8. EDITOR
    ========================================================= */
 function newRecipe(kind){
+  if(kind === "esp") return {id:"", kind:"esp", name:"", cat:"espresso", tone:"green", art:"espmachine",
+    dose:18, out:36, time:28, preinf:0, grind:"", basket:"", temp:"", machine:"",
+    flavor:"", tips:"", phases:[]};
   return kind === "brew"
     ? {id:"", kind:"brew", name:"", cat:"panas", tone:"green", dose:15, dripper:"", temp:"", grind:"",
        ice:0, flavor:"", tips:"", finishLabel:"Angkat dripper", finishNote:"", drawdown:0,
@@ -2619,6 +2711,31 @@ function editView(){
       <div class="field"><label>Catatan penutup</label><input id="f-fn" value="${esc(d.finishNote)}" placeholder="swirl lalu buka switch"></div>
     </div>
     <div class="field"><label>Tips</label><textarea id="f-tips" placeholder="Swirl lembut untuk meratakan ekstraksi...">${esc(d.tips)}</textarea></div>`;
+  } else if(d.kind === "esp"){
+    body = `
+    <div class="field"><label>Mesin / grinder</label>
+      <input id="f-machine" value="${esc(d.machine)}" placeholder="Misal Breville Bambino + DF64"></div>
+    <div class="grid2">
+      <div class="field"><label>Dose masuk (g)</label><input id="f-dose" type="number" step="0.1" value="${d.dose}"></div>
+      <div class="field"><label>Yield keluar (g)</label><input id="f-out" type="number" step="0.5" value="${d.out}"></div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Waktu (detik)</label><input id="f-time" type="number" step="1" value="${d.time}"></div>
+      <div class="field"><label>Pre-infusi (dtk)</label><input id="f-preinf" type="number" step="1" value="${d.preinf || 0}"></div>
+      <div class="field"><label>Suhu</label><input id="f-temp" value="${esc(d.temp)}" placeholder="93°C"></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Grind</label><input id="f-grind" value="${esc(d.grind)}" placeholder="Misal 2.4"></div>
+      <div class="field"><label>Basket</label><input id="f-basket" value="${esc(d.basket)}" placeholder="18 g VST"></div>
+    </div>
+    <div class="field"><label>Karakter rasa</label><input id="f-flavor" value="${esc(d.flavor)}" placeholder="Manis, cokelat, body tebal"></div>
+
+    <p class="sub">Fase (opsional)</p>
+    <div id="phases">${(d.phases || []).map((p,i) => phaseRow(p,i)).join("")}</div>
+    <button class="add" data-add="phase">+ Tambah fase</button>
+    <p class="muted" style="font-size:12.5px;margin-top:8px">Kalau dikosongkan, dipakai pre-infusi lalu ekstraksi sampai target waktu.</p>
+
+    <div class="field"><label>Tips</label><textarea id="f-tips" placeholder="WDT dulu, tamping rata...">${esc(d.tips)}</textarea></div>`;
   } else if(d.kind === "mix"){
     body = `
     <div class="grid2">
@@ -2682,6 +2799,26 @@ function stepRow(s, i){
     <input class="s-note" style="margin-top:8px" value="${esc(s.note||"")}" placeholder="Catatan, misal fast 2 set">
   </div>`;
 }
+function phaseRow(p, i){
+  return `<div class="ed-row">
+    <div class="hd"><b>Fase ${i+1}</b><button class="del" data-rm="phase" data-i="${i}">Hapus</button></div>
+    <div class="grid2">
+      <span><label>Nama</label><input class="ph-n" value="${esc(p.n)}"></span>
+      <span><label>Selesai di detik</label><input class="ph-at" type="number" step="1" value="${p.at}"></span>
+    </div>
+    <input class="ph-note" style="margin-top:8px" value="${esc(p.note || "")}" placeholder="Catatan, misal 3 bar">
+  </div>`;
+}
+function phaseRow(p, i){
+  return `<div class="ed-row">
+    <div class="hd"><b>Fase ${i+1}</b><button class="del" data-rm="phase" data-i="${i}">Hapus</button></div>
+    <div class="grid2">
+      <span><label>Nama</label><input class="ph-n" value="${esc(p.n)}"></span>
+      <span><label>Selesai di detik</label><input class="ph-at" type="number" step="1" value="${p.at}"></span>
+    </div>
+    <input class="ph-note" style="margin-top:8px" value="${esc(p.note || "")}" placeholder="Catatan, misal 3 bar">
+  </div>`;
+}
 function ingRow(x, i, key){
   return `<div class="ed-row" data-${key}="${i}">
     <div class="hd"><b>${i+1}</b><button class="del" data-rm="${key}" data-i="${i}">Hapus</button></div>
@@ -2727,6 +2864,22 @@ function collectDraft(){
       note: el.querySelector(".s-note").value.trim()
     })).filter(s => s.at > 0);
     d.steps.sort((a,b) => a.at - b.at);
+  } else if(d.kind === "esp"){
+    d.machine = q("#f-machine").value.trim();
+    d.dose = +q("#f-dose").value || 18;
+    d.out = +q("#f-out").value || 36;
+    d.time = +q("#f-time").value || 28;
+    d.preinf = +q("#f-preinf").value || 0;
+    d.temp = q("#f-temp").value.trim();
+    d.grind = q("#f-grind").value.trim();
+    d.basket = q("#f-basket").value.trim();
+    d.flavor = q("#f-flavor").value.trim();
+    d.tips = q("#f-tips").value.trim();
+    d.phases = [...app.querySelectorAll("#phases .ed-row")].map(el => ({
+      n: el.querySelector(".ph-n").value.trim() || "Fase",
+      at: +el.querySelector(".ph-at").value || 0,
+      note: el.querySelector(".ph-note").value.trim()
+    })).filter(p => p.at > 0).sort((a,b) => a.at - b.at);
   } else if(d.kind === "mix"){
     d.unit = q("#f-unit").value.trim() || "gelas";
     d.note = q("#f-note").value.trim();
@@ -2750,6 +2903,7 @@ function collectDraft(){
 function validate(d){
   if(!d.name) return "Nama resep belum diisi.";
   if(d.kind === "brew" && !d.steps.length) return "Isi minimal satu langkah dengan waktu.";
+  if(d.kind === "esp" && (!d.dose || !d.out || !d.time)) return "Dose, yield, dan waktu harus diisi.";
   if(d.kind === "mix" && !d.ing.length) return "Isi minimal satu bahan.";
   if(d.kind === "note" && !d.ratios.length) return "Isi minimal satu rasio.";
   return "";
@@ -2939,12 +3093,14 @@ function bind(v){
     const r = it && it.data;
     if(r){
       app.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
-        const min = r.kind === "brew" ? 5 : 0.5;
+        const min = r.kind === "brew" ? 5 : r.kind === "esp" ? 5 : 0.5;
         state.scale[r.id] = Math.max(min, Math.round((state.scale[r.id] + parseFloat(b.dataset.d)) * 10) / 10);
         render();
       });
       const bw = app.querySelector("[data-brew]");
       if(bw) bw.onclick = () => openBrew(r);
+      const sh = app.querySelector("[data-shot]");
+      if(sh) sh.onclick = () => openShot(r);
       app.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => saveCopy(r));
       const nin = app.querySelector("#nin");
       if(nin) nin.oninput = e => {
@@ -2959,7 +3115,7 @@ function bind(v){
   if(v === "detail"){
     const r = byId(state.id);
     app.querySelectorAll("[data-d]").forEach(b => b.onclick = () => {
-      const min = r.kind === "brew" ? 5 : 0.5;
+      const min = (r.kind === "brew" || r.kind === "esp") ? 5 : 0.5;
       state.scale[r.id] = Math.max(min, Math.round((state.scale[r.id] + parseFloat(b.dataset.d)) * 10) / 10);
       render();
     });
@@ -2974,6 +3130,8 @@ function bind(v){
     };
     const bw = app.querySelector("[data-brew]");
     if(bw) bw.onclick = () => openBrew(r);
+    const sh = app.querySelector("[data-shot]");
+    if(sh) sh.onclick = () => openShot(r);
     const nin = app.querySelector("#nin");
     if(nin) nin.oninput = e => {
       const g = Math.max(0, parseFloat(e.target.value) || 0);
@@ -2990,6 +3148,10 @@ function bind(v){
         const last = d.steps[d.steps.length-1];
         d.steps.push({n:"Tuang", at:(last ? last.at + 40 : 40), pour:50, ps:"circle", note:""});
       }
+      if(t === "phase"){
+        const last = (d.phases || [])[d.phases.length - 1];
+        d.phases = (d.phases || []).concat([{n:"Fase", at:(last ? last.at + 10 : 8), note:""}]);
+      }
       if(t === "ing") d.ing.push({nm:"", a:0, alt:""});
       if(t === "addon") d.addon.push({nm:"", a:0, alt:""});
       if(t === "ratio") d.ratios.push({lb:"", v:1});
@@ -2998,6 +3160,7 @@ function bind(v){
     app.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => {
       const d = collectDraft(), i = +b.dataset.i, t = b.dataset.rm;
       if(t === "step") d.steps.splice(i,1);
+      if(t === "phase") d.phases.splice(i,1);
       if(t === "ing") d.ing.splice(i,1);
       if(t === "addon") d.addon.splice(i,1);
       if(t === "ratio") d.ratios.splice(i,1);
@@ -3031,6 +3194,154 @@ function bind(v){
       saveStore(); const id = state.draft.id; state.draft = null; go("detail", id);
     };
   }
+}
+
+/* =========================================================
+   10a. MODE SHOT ESPRESSO
+   ========================================================= */
+let S = null;
+const $s = id => ovRoot.querySelector("#" + id);
+
+function openShot(r){
+  const k = state.scale[r.id] / (r.dose || 1);
+  const ph = espPhases(r);
+  const total = ph[ph.length - 1].at;
+  const out = (r.out || 0) * k;
+  S = { r, k, ph, total, out, elapsed:0, running:true, t0:Date.now(), act:-1, done:false, raf:null, wake:null, lastSec:null };
+
+  const rows = ph.map((p, i) => `
+    <div class="btl-i" data-i="${i}">
+      <span class="badge">${fmt(i ? ph[i-1].at : 0)}s</span>
+      <span class="fill"></span>
+      <span class="btl-bd"><span class="amt">${fmt(p.at)} dtk</span><b>${esc(p.n)}</b>
+        <p>${esc(p.note || "")}</p></span>
+    </div>`).join("");
+
+  ovRoot.innerHTML = `<div class="brew" id="ovShot"><div class="brew-in">
+    <div class="brew-bar">
+      <button class="lnk" id="sClose">${ICON.back} Kembali</button>
+      <span class="nm">${esc(r.name)} · ${fmt(state.scale[r.id])} g</span>
+      <button class="snd ${store.sound ? "" : "off"}" id="sSnd" aria-label="Suara">${ICON.snd}</button>
+    </div>
+
+    <div class="stage" id="sStage">
+      <span class="txt">
+        <span class="ph" id="sPhase">Siap tarik</span>
+        <b class="big" id="sClock">0,0<small> dtk</small></b>
+        <span class="cap" id="sCap">Target ${fmt(out)} g dalam ${fmt(total)} detik.</span>
+      </span>
+      ${artSVG("espmachine", 104, true, r.tone || "green")}
+    </div>
+
+    <div class="clockrow"><b id="sYield">${fmt(out)} g</b><span id="sNext">target yield</span></div>
+
+    <div class="btl" id="sList">${rows}</div>
+
+    <div class="brew-ctl">
+      <button id="sTgl">Jeda</button>
+      <button class="g" id="sRst">Ulang</button>
+    </div>
+  </div></div>`;
+
+  document.body.style.overflow = "hidden";
+  $s("sClose").onclick = closeShot;
+  $s("sTgl").onclick = toggleShot;
+  $s("sRst").onclick = resetShot;
+  $s("sSnd").onclick = () => {
+    store.sound = !store.sound; saveStore();
+    $s("sSnd").classList.toggle("off", !store.sound);
+    if(store.sound) sTick();
+  };
+
+  const an = A();
+  if(an){
+    an({targets: $s("sStage"), opacity:[0,1], translateY:[12,0], duration:420, easing:"easeOutQuad"});
+    an({targets: ovRoot.querySelectorAll(".btl-i"), translateY:[16,0], duration:480,
+        delay: an.stagger(70,{start:80}), easing:"easeOutQuad"});
+  }
+  try{ navigator.wakeLock.request("screen").then(w => { if(S) S.wake = w; }).catch(()=>{}); }catch(e){}
+  loopShot();
+}
+
+function loopShot(){
+  const b = S; if(!b) return;
+  if(b.running) b.elapsed = (Date.now() - b.t0) / 1000;
+  paintShot();
+  b.raf = requestAnimationFrame(loopShot);
+}
+
+function paintShot(){
+  const b = S; if(!b || !$s("sClock")) return;
+  const { ph, total, out } = b;
+  const el = b.elapsed;
+  let j = 0;
+  while(j < ph.length - 1 && el >= ph[j].at) j++;
+  const lewat = el >= total;
+
+  if(!b.done && j !== b.act) stepShot(j);
+  if(lewat && !b.done) finishShot();
+
+  $s("sClock").innerHTML = el.toFixed(1).replace(".", ",") + "<small> dtk</small>";
+
+  if(!b.done){
+    const p = ph[j];
+    $s("sPhase").textContent = p.n + ", sisa " + Math.ceil(p.at - el) + " detik";
+    $s("sCap").textContent = (p.note ? p.note + " — " : "") + "target " + fmt(out) + " g pada " + fmt(total) + " detik";
+    if(b.running){
+      const detik = Math.ceil(total - el);
+      if(detik !== b.lastSec){
+        if(detik <= 3 && detik > 0) sTick();
+        b.lastSec = detik;
+      }
+    }
+  }else{
+    const lebih = el - total;
+    $s("sStage").classList.toggle("pour", lebih > 2);
+    $s("sPhase").textContent = lebih < 1.5 ? "Hentikan shot" : "Lewat " + lebih.toFixed(1).replace(".", ",") + " detik";
+    $s("sCap").textContent = "Timbang hasilnya. Kalau kurang dari target, gilas lebih kasar; kalau lewat, lebih halus.";
+  }
+
+  $s("sTgl").textContent = b.running ? "Jeda" : "Lanjut";
+
+  const items = ovRoot.querySelectorAll(".btl-i");
+  items.forEach((it, i) => {
+    const f = it.querySelector(".fill"); if(!f) return;
+    const a0 = i ? ph[i-1].at : 0, a1 = ph[i].at;
+    const frac = el <= a0 ? 0 : el >= a1 ? 1 : (el - a0) / (a1 - a0);
+    f.style.height = (frac * (it.offsetHeight - 54)) + "px";
+    it.classList.toggle("on", !b.done && i === j);
+    it.classList.toggle("past", b.done || el >= a1);
+  });
+}
+
+function stepShot(j){
+  const b = S; b.act = j; b.lastSec = null;
+  pulse(ovRoot.querySelectorAll(".badge")[j]);
+  sStep();
+}
+function finishShot(){
+  const b = S; b.done = true;
+  $s("sStage").classList.add("done");
+  sDone();
+  if(window.confetti) window.confetti({particleCount:50, spread:55, startVelocity:28, scalar:.8,
+    origin:{y:.3}, colors:["#2F3B26","#E0A93E","#C24B32","#A96A24","#F1EADA"]});
+}
+function toggleShot(){
+  const b = S; if(!b) return;
+  if(b.running) b.running = false;
+  else { b.running = true; b.t0 = Date.now() - b.elapsed * 1000; }
+}
+function resetShot(){
+  const b = S; if(!b) return;
+  Object.assign(b, {elapsed:0, t0:Date.now(), running:true, act:-1, done:false, lastSec:null});
+  $s("sStage").classList.remove("done", "pour");
+  $s("sPhase").textContent = "Siap tarik";
+}
+function closeShot(){
+  const b = S; if(!b) return;
+  cancelAnimationFrame(b.raf);
+  try{ if(b.wake) b.wake.release(); }catch(e){}
+  S = null; ovRoot.innerHTML = ""; document.body.style.overflow = "";
 }
 
 /* =========================================================
@@ -3281,7 +3592,7 @@ function closeBrew(){
 }
 document.addEventListener("keydown", e => {
   if(e.key !== "Escape") return;
-  if(B) closeBrew(); else if(state.view === "detail" || state.view === "edit") go("list");
+  if(S) closeShot(); else if(B) closeBrew(); else if(state.view === "detail" || state.view === "edit") go("list");
 });
 
 render();
