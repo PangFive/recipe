@@ -1152,12 +1152,12 @@ ping();
   .bar{display:flex;align-items:center;gap:10px;padding:16px 0 4px}
   .bar .sp{flex:1}
   .lnk{color:var(--muted);font-size:14px;display:inline-flex;align-items:center;gap:6px}
-  .head{background:var(--green);color:#F2EDE1;border-radius:22px;padding:18px;margin-top:6px;position:relative;overflow:hidden;min-height:136px;display:flex;flex-direction:column;justify-content:center}
+  .head{background:var(--green);color:#F2EDE1;border-radius:22px;padding:18px;margin-top:6px;position:relative;overflow:hidden;min-height:150px;display:flex;flex-direction:column;justify-content:center}
   .head.blue{background:var(--blue)} .head.red{background:var(--red)} .head.gold{background:var(--gold);color:#3B2A08}
   .head .kind{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
   .head h2{font-family:var(--serif);font-size:27px;font-weight:500;margin-top:6px;line-height:1.12;max-width:68%;letter-spacing:-.01em}
   .head .flavor{font-family:var(--serif);font-style:italic;font-size:14.5px;opacity:.85;margin-top:8px;max-width:74%}
-  .head .art{position:absolute;right:14px;bottom:-2px;opacity:.97}
+  .head .art{position:absolute;right:14px;top:50%;transform:translateY(-50%);line-height:0;opacity:.97}
   .specs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}
   .spec{background:var(--card);padding:11px 8px;text-align:center}
   .spec i{display:block;color:var(--muted);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;font-style:normal}
@@ -1862,7 +1862,7 @@ function detailView(){
       <span class="kind">${kindName(r.kind)}${isEdited(r.id) ? " · diubah" : ""}</span>
       <h2>${esc(r.name)}</h2>
       ${r.flavor ? `<p class="flavor">${esc(r.flavor)}</p>` : ""}
-      <span class="art">${artFor(r, 92, r.tone === "gold" ? "light" : "dark")}</span>
+      <span class="art">${artFor(r, 88, r.tone === "gold" ? "light" : "dark")}</span>
     </div>`;
 
   if(r.kind === "brew") return `<div class="wrap">${head}${brewDetail(r, v)}</div>`;
@@ -2340,7 +2340,7 @@ function remoteView(){
       <span class="kind">Dibagikan oleh ${esc(it.by || "Anonim")}</span>
       <h2>${esc(r.name)}</h2>
       ${r.flavor ? `<p class="flavor">${esc(r.flavor)}</p>` : ""}
-      <span class="art">${artFor(r, 92, r.tone === "gold" ? "light" : "dark")}</span>
+      <span class="art">${artFor(r, 88, r.tone === "gold" ? "light" : "dark")}</span>
     </div>
     <div class="cta"><button class="btn" data-copyto="${esc(it.key)}">Simpan ke buku saya</button></div>`;
   const body = r.kind === "brew" ? brewDetail(r, v) : r.kind === "mix" ? mixDetail(r, v) : noteDetail(r, v);
