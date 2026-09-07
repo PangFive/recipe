@@ -1325,6 +1325,30 @@ ping();
     font-size:12.5px;font-weight:600
   }
   .admbtn button.danger{border-color:var(--red);color:var(--red)}
+  .pickbtn{
+    width:100%;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;text-align:left
+  }
+  .pickbtn .pkl{flex:1;min-width:0;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pickbtn svg{flex:none;color:var(--muted)}
+  .pickbtn:active{background:var(--paper)}
+  .pvw{flex:none;display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:var(--sand);overflow:hidden}
+  .pvw svg{width:30px;height:auto;color:inherit}
+  .swatch{width:20px;height:20px;border-radius:50%;display:block}
+  .pico{display:grid;place-items:center;color:var(--green)}
+  .pico svg{width:20px;height:20px}
+  .pickdlg{padding:18px 14px 16px}
+  .pickdlg > b{padding:0 6px}
+  .picklist{margin-top:12px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .pickitem{
+    width:100%;display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;text-align:left;
+    border:1px solid transparent
+  }
+  .pickitem.on{background:var(--paper);border-color:var(--line)}
+  .pickitem .pkt{flex:1;min-width:0}
+  .pickitem .pkt b{display:block;font-family:var(--sans);font-size:15px;font-weight:600}
+  .pickitem .pkt span{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+  .pickitem .chk{color:var(--green);font-weight:700;flex:none}
   .taglist{display:flex;flex-wrap:wrap;gap:8px}
   .tag{
     display:inline-flex;align-items:center;gap:7px;padding:6px 8px 6px 12px;border-radius:999px;
@@ -1578,6 +1602,47 @@ const ART = {
     <path d="M28 66 H72 L68 111 Q67.6 115 63 115 H37 Q32.4 115 32 111 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
     <rect x="37" y="74" width="15" height="15" rx="3.5" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>
     <rect x="51" y="88" width="14" height="14" rx="3.5" fill="${PAL.ice}" stroke="${L}" stroke-width="2.2"/>`,
+  /* --- Kalita Wave: dasar rata --- */
+  kalita: L => `
+    <path d="M18 16 H82 L66 58 H34 Z" fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3.4"/>
+    <path d="M28 26 H72 L62 52 H38 Z" fill="${PAL.dark}" opacity=".85"/>
+    <path d="M22 30 q6 -5 12 0 t12 0 t12 0 t12 0" stroke="${L}" stroke-width="1.8" opacity=".6" fill="none"/>
+    <path d="M34 58 H66" stroke="${L}" stroke-width="3.4"/>
+    <path d="M50 62 v6" stroke="${L}" stroke-width="3"/>
+    <path d="M26 76 H74 V102 Q74 110 66 110 H34 Q26 110 26 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M74 84 q11 7 0 14" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- Origami: rusuk besar --- */
+  origami: L => `
+    <path d="M14 16 L22 12 L30 16 L38 12 L46 16 L54 12 L62 16 L70 12 L78 16 L86 12 L86 18 L54 60 H46 L14 18 Z"
+      fill="rgba(169,106,36,.22)" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M26 26 H74 L54 54 H46 Z" fill="${PAL.dark}" opacity=".8"/>
+    <path d="M50 62 v6" stroke="${L}" stroke-width="3"/>
+    <path d="M26 76 H74 V102 Q74 110 66 110 H34 Q26 110 26 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M74 84 q11 7 0 14" stroke="${L}" stroke-width="3.4"/>`,
+  /* --- Chemex --- */
+  chemex: L => `
+    <path d="M30 10 H70 L58 54 L72 96 Q74 110 60 110 H40 Q26 110 28 96 L42 54 Z"
+      fill="${PAL.coffee}" fill-opacity=".25" stroke="${L}" stroke-width="3.4" stroke-linejoin="round"/>
+    <path d="M30 76 Q50 70 70 76 L72 96 Q74 110 60 110 H40 Q26 110 28 96 Z" fill="${PAL.coffee}"/>
+    <path d="M26 10 H74" stroke="${L}" stroke-width="3.4" stroke-linecap="round"/>
+    <rect x="34" y="48" width="32" height="13" rx="5" fill="${PAL.sugar}" stroke="${L}" stroke-width="2.6"/>
+    <path d="M34 54 h-7 M66 54 h7" stroke="${L}" stroke-width="2.4"/>`,
+  /* --- French press --- */
+  frenchpress: L => `
+    <path d="M30 30 H70 V102 Q70 110 62 110 H38 Q30 110 30 102 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.4"/>
+    <path d="M30 56 H70" stroke="${L}" stroke-width="2.6" opacity=".5"/>
+    <rect x="26" y="20" width="48" height="11" rx="4" fill="${L}"/>
+    <path d="M50 20 V6" stroke="${L}" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="50" cy="4" r="5" fill="${L}"/>
+    <path d="M70 44 q16 10 0 22" stroke="${L}" stroke-width="3.4" fill="none"/>`,
+  /* --- Aeropress --- */
+  aeropress: L => `
+    <path d="M34 26 H66 V78 H34 Z" fill="${PAL.coffee}" fill-opacity=".3" stroke="${L}" stroke-width="3.4"/>
+    <path d="M34 44 H66" stroke="${L}" stroke-width="2.4" opacity=".5"/>
+    <rect x="38" y="6" width="24" height="9" rx="3" fill="${L}"/>
+    <path d="M50 15 v11" stroke="${L}" stroke-width="4"/>
+    <path d="M34 78 H66 L60 88 H40 Z" fill="${PAL.dark}" stroke="${L}" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M32 96 H68 V106 Q68 112 61 112 H39 Q32 112 32 106 Z" fill="${PAL.coffee}" stroke="${L}" stroke-width="3.2"/>`,
   /* --- es kopi susu berlapis --- */
   latte: L => `
     <path d="M30 22 H70 L66 112 Q65.6 116 61 116 H39 Q34.4 116 34 112 Z" fill="${PAL.milk}" stroke="${L}" stroke-width="3.4"/>
@@ -1650,12 +1715,36 @@ const ART = {
     <circle cx="49" cy="40" r="4" fill="${L}"/>
     <path d="M86 82 q0 12 -8 18" stroke="${L}" stroke-width="2.6" opacity=".7"/>`
 };
-const ART_LABEL = {v60:"Dripper V60", switch:"Hario Switch", switchice:"Switch + es", icedrip:"Dripper + gelas es",
+const ART_LABEL = {
+  v60:"Dripper V60", switch:"Hario Switch", switchice:"Switch + gelas es", icedrip:"Dripper + gelas es",
+  kalita:"Kalita Wave", origami:"Origami", chemex:"Chemex", frenchpress:"French press", aeropress:"Aeropress",
   latte:"Es kopi susu", mocktail:"Mocktail cold brew", mojito:"Mojito", teh:"Teh tarik",
-  pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat", espresso:"Espresso", teapot:"Teko teh"};
+  pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat", espresso:"Espresso", teapot:"Teko teh"
+};
+/* urutan tampil: alat seduh dulu, baru minuman dan bahan */
+const ART_ORDER = ["v60","switch","switchice","icedrip","kalita","origami","chemex","frenchpress","aeropress",
+                   "latte","mocktail","mojito","teh","espresso","teapot","pan","bottle","jar"];
+
+/* Tebak ilustrasi dari nama dripper yang dipilih. */
+function artFromDripper(nama, dingin){
+  const n = String(nama || "").toLowerCase();
+  if(n.includes("switch")) return dingin ? "switchice" : "switch";
+  if(n.includes("kalita") || n.includes("wave")) return "kalita";
+  if(n.includes("origami")) return "origami";
+  if(n.includes("chemex")) return "chemex";
+  if(n.includes("french")) return "frenchpress";
+  if(n.includes("aeropress")) return "aeropress";
+  if(n.includes("v60") || n.includes("dripper") || n.includes("april") || n.includes("mugen"))
+    return dingin ? "icedrip" : "v60";
+  return null;
+}
 
 function artKey(r){
   if(r.art && ART[r.art]) return r.art;
+  if(r.kind === "brew"){
+    const tebak = artFromDripper(r.dripper, !!r.ice);
+    if(tebak) return tebak;
+  }
   if(r.kind === "note") return "jar";
   if(r.kind === "mix") return {susu:"latte", coldbrew:"mocktail", teh:"teh", sirup:"bottle"}[r.cat] || "latte";
   return r.ice ? "icedrip" : "v60";
@@ -1991,6 +2080,71 @@ async function wipeLocal(){
   render();
 }
 
+
+/* ============ popup pilihan (pengganti dropdown bawaan) ============ */
+const TONE_LABEL = {green:"Hijau", blue:"Biru", red:"Merah bata", gold:"Kuning"};
+const TONE_HEX   = {green:"#2F3B26", blue:"#2C4A63", red:"#C24B32", gold:"#E0A93E"};
+
+function pickerOptions(id){
+  if(id === "f-cat")  return Object.entries(CATS).map(([k,v]) => ({value:k, label:v}));
+  if(id === "f-tone") return Object.keys(TONE_LABEL).map(k => ({
+    value:k, label:TONE_LABEL[k],
+    preview:`<span class="swatch" style="background:${TONE_HEX[k]}"></span>`}));
+  if(id === "f-art"){
+    const tone = (document.getElementById("f-tone") || {}).value || "green";
+    return ART_ORDER.filter(k => ART[k]).map(k => ({
+      value:k, label:ART_LABEL[k] || k, preview:artSVG(k, 34, false, tone)}));
+  }
+  if(id === "f-dripper") return dripperList().map(x => ({value:x, label:x,
+    preview:(() => { const a = artFromDripper(x); return a ? artSVG(a, 30, false, "green") : ""; })()}));
+  if(id.startsWith("s-ps")) return [{value:"", label:"Belum diatur"}].concat(
+    pourList().map(p => ({value:p.key, label:p.lb, sub:p.desc,
+      preview:`<span class="pico">${POUR_ICONS[p.icon] || POUR_ICONS.circle}</span>`})));
+  if(id.startsWith("p-icon")) return Object.keys(POUR_ICONS).map(k => ({
+    value:k, label:k, preview:`<span class="pico">${POUR_ICONS[k]}</span>`}));
+  return [];
+}
+function pickLabel(id, value){
+  const o = pickerOptions(id).find(x => x.value === value);
+  if(o) return o.label;
+  return value || "Pilih";
+}
+function pickField(id, value, title, extraClass){
+  const o = pickerOptions(id).find(x => x.value === value);
+  return `<input type="hidden" id="${id}" class="${extraClass || ""}" value="${esc(value == null ? "" : value)}">
+    <button type="button" class="pickbtn" data-pick="${id}" data-title="${esc(title)}">
+      ${o && o.preview ? `<span class="pvw">${o.preview}</span>` : ""}
+      <span class="pkl">${esc(o ? o.label : (value || "Pilih"))}</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5 5 5-5"/></svg>
+    </button>`;
+}
+function openPicker(title, options, current, allowCustom){
+  return new Promise(resolve => {
+    dlgRoot.innerHTML = `<div class="dlgbg"><div class="dlg pickdlg">
+      <b>${esc(title)}</b>
+      <div class="picklist">${options.map(o => `
+        <button class="pickitem ${o.value === current ? "on" : ""}" data-v="${esc(o.value)}">
+          ${o.preview ? `<span class="pvw">${o.preview}</span>` : ""}
+          <span class="pkt"><b>${esc(o.label)}</b>${o.sub ? `<span>${esc(o.sub)}</span>` : ""}</span>
+          ${o.value === current ? '<span class="chk">✓</span>' : ""}
+        </button>`).join("")}</div>
+      ${allowCustom ? `<div class="cta" style="margin-top:12px">
+        <input id="pickcustom" placeholder="Tulis sendiri">
+        <button class="btn ghost" data-usecustom>Pakai</button></div>` : ""}
+    </div></div>`;
+    const tutup = v => { dlgRoot.innerHTML = ""; resolve(v); };
+    dlgRoot.querySelectorAll(".pickitem").forEach(b => b.onclick = () => tutup(b.dataset.v));
+    const uc = dlgRoot.querySelector("[data-usecustom]");
+    if(uc) uc.onclick = () => {
+      const v = dlgRoot.querySelector("#pickcustom").value.trim();
+      if(v) tutup(v);
+    };
+    dlgRoot.querySelector(".dlgbg").onclick = e => {
+      if(e.target === dlgRoot.querySelector(".dlgbg")) tutup(null);
+    };
+  });
+}
+
 /* ============ sinkronisasi dua arah ============ */
 const SYNC = { status:"idle", at:0, err:null, timer:null, watching:false, busy:false };
 
@@ -2242,9 +2396,7 @@ function adminParams(){
     <div class="hd"><b>${esc(p.lb || p.key)}</b><button class="del" data-delpour="${i}">Hapus</button></div>
     <div class="grid2">
       <span><label>Kode</label><input class="p-key" data-i="${i}" value="${esc(p.key)}"></span>
-      <span><label>Ikon</label>
-        <select class="p-icon" data-i="${i}">${Object.keys(POUR_ICONS).map(k =>
-          `<option value="${k}" ${p.icon===k?"selected":""}>${k}</option>`).join("")}</select></span>
+      <span><label>Ikon</label>${pickField("p-icon-" + i, p.icon, "Ikon jenis tuangan", "p-icon")}</span>
     </div>
     <div style="margin-top:8px"><label>Nama tampil</label><input class="p-lb" data-i="${i}" value="${esc(p.lb)}"></div>
     <div style="margin-top:8px"><label>Keterangan</label><input class="p-desc" data-i="${i}" value="${esc(p.desc || "")}"></div>
@@ -2258,10 +2410,10 @@ function adminParams(){
 
 function collectParams(){
   const d = ADM.draft;
-  app.querySelectorAll(".p-key").forEach(el => d.pours[+el.dataset.i].key = el.value.trim());
-  app.querySelectorAll(".p-lb").forEach(el => d.pours[+el.dataset.i].lb = el.value.trim());
-  app.querySelectorAll(".p-desc").forEach(el => d.pours[+el.dataset.i].desc = el.value.trim());
-  app.querySelectorAll(".p-icon").forEach(el => d.pours[+el.dataset.i].icon = el.value);
+  app.querySelectorAll(".p-key").forEach((el,i) => d.pours[i].key = el.value.trim());
+  app.querySelectorAll(".p-lb").forEach((el,i) => d.pours[i].lb = el.value.trim());
+  app.querySelectorAll(".p-desc").forEach((el,i) => d.pours[i].desc = el.value.trim());
+  app.querySelectorAll(".p-icon").forEach((el,i) => d.pours[i].icon = el.value);
   d.pours = d.pours.filter(p => p.key && p.lb);
   return d;
 }
@@ -2419,8 +2571,7 @@ function newRecipe(kind){
 function editView(){
   const d = state.draft; if(!d) return "";
   const isNew = !d.id;
-  const toneSel = `<select id="f-tone">${["green","blue","red","gold"].map(t =>
-    `<option value="${t}" ${d.tone===t?"selected":""}>${{green:"Hijau",blue:"Biru",red:"Merah bata",gold:"Kuning"}[t]}</option>`).join("")}</select>`;
+  const toneSel = pickField("f-tone", d.tone, "Warna kartu");
 
   let body = "";
   if(d.kind === "brew"){
@@ -2434,9 +2585,6 @@ function editView(){
       <div class="field"><label>Grind</label><input id="f-grind" value="${esc(d.grind)}" placeholder="FM 10.5"></div>
       <div class="field"><label>Drawdown</label><input id="f-draw" value="${d.drawdown ? mmss(d.drawdown) : ""}" placeholder="2:30"></div>
     </div>
-    <div class="field"><label>Dripper / alat</label>
-      <input id="f-dripper" list="dripperlist" value="${esc(d.dripper)}" placeholder="Hario Switch">
-      <datalist id="dripperlist">${dripperList().map(x => `<option value="${esc(x)}"></option>`).join("")}</datalist></div>
     <div class="field"><label>Karakter rasa</label><input id="f-flavor" value="${esc(d.flavor)}" placeholder="Clean, sweet & balanced"></div>
 
     <p class="sub">Langkah tuang</p>
@@ -2474,8 +2622,7 @@ function editView(){
   }
 
   const catSel = d.kind === "note" ? "" : `<div class="field"><label>Kategori</label>
-    <select id="f-cat">${Object.entries(CATS).map(([k,v]) =>
-      `<option value="${k}" ${d.cat===k?"selected":""}>${v}</option>`).join("")}</select></div>`;
+    ${pickField("f-cat", d.cat, "Kategori")}</div>`;
 
   return `<div class="wrap">
     <div class="bar"><button class="lnk" data-back>${ICON.back} Batal</button><span class="sp"></span>
@@ -2483,11 +2630,12 @@ function editView(){
     <h1 class="hello" style="margin-top:8px">${isNew ? "Buat " + kindName(d.kind).toLowerCase() : esc(d.name)}</h1>
 
     <div class="field"><label>Nama</label><input id="f-name" value="${esc(d.name)}" placeholder="Nama resep"></div>
+    ${d.kind === "brew" ? `<div class="field"><label>Dripper / alat</label>
+      ${pickField("f-dripper", d.dripper, "Pilih dripper")}</div>` : ""}
     ${catSel}
     ${d.kind === "brew" ? `<div class="field"><label>Warna kartu</label>${toneSel}</div>` : ""}
     <div class="field"><label>Ilustrasi</label>
-      <select id="f-art">${Object.entries(ART_LABEL).map(([k,v]) =>
-        `<option value="${k}" ${artKey(d)===k?"selected":""}>${v}</option>`).join("")}</select></div>
+      ${pickField("f-art", artKey(d), "Pilih ilustrasi")}</div>
     <div class="artprev">${artFor({...d, art:artKey(d)}, 62, "light")}</div>
     ${body}
     <div id="warn"></div>
@@ -2507,10 +2655,7 @@ function stepRow(s, i){
       <span><label>Selesai di</label><input class="s-at" value="${mmss(s.at)}" placeholder="0:40"></span>
     </div>
     <div style="margin-top:8px"><label>Jenis tuangan</label>
-      <select class="s-ps">
-        <option value="">— belum diatur —</option>
-        ${pourList().map(v => `<option value="${v.key}" ${s.ps===v.key?"selected":""}>${esc(v.lb)}${v.desc ? " — " + esc(v.desc) : ""}</option>`).join("")}
-      </select></div>
+      ${pickField("s-ps-" + i, s.ps || "", "Jenis tuangan langkah " + (i+1), "s-ps")}</div>
     <input class="s-note" style="margin-top:8px" value="${esc(s.note||"")}" placeholder="Catatan, misal fast 2 set">
   </div>`;
 }
@@ -2734,6 +2879,25 @@ function bind(v){
     };
     rd.readAsText(f);
   };
+  app.querySelectorAll("[data-pick]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.pick;
+    const inp = app.querySelector("#" + id);
+    if(!inp) return;
+    const v = await openPicker(b.dataset.title, pickerOptions(id), inp.value, id === "f-dripper");
+    if(v === null) return;
+    inp.value = v;
+    if(state.view === "edit"){
+      collectDraft();
+      if(id === "f-dripper"){
+        const tebak = artFromDripper(v, !!state.draft.ice);
+        if(tebak) state.draft.art = tebak;
+      }
+      render();
+    }else if(state.view === "admin"){
+      ADM.draft = collectParams(); render();
+    }else render();
+  });
+
   const back = app.querySelector("[data-back]");
   if(back) back.onclick = () => go(
     state.view === "admin" ? "home"
