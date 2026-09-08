@@ -2027,8 +2027,9 @@ function listMeta(r){
     return [r.roastery, n + " catatan ekstraksi"].filter(Boolean).join(" · ");
   }
   if(r.kind === "mix") return r.ing.length + " bahan, per " + r.unit;
+  if((r.ing || []).length) return r.ing.length + " bahan, per " + (r.unit || "batch");
   if(r.ratios && r.ratios.length) return "Rasio dari berat " + r.basis;
-  return (r.ing || []).length + " bahan, per " + (r.unit || "batch");
+  return "Catatan";
 }
 
 function listView(){
@@ -2261,7 +2262,11 @@ function noteDetail(r, g){
   </div>`}
   <div class="card"><ul class="ing">${r.ing.map(i => `<li>
     <span>${esc(i.nm)}${i.alt ? `<em>${esc(i.alt)}</em>` : ""}</span>
-    <span class="a">${fmt((+i.a || 0) * mult)} g</span></li>`).join("")}</ul></div>` : "";
+    <span class="a">${fmt((+i.a || 0) * mult)} g</span></li>`).join("")}</ul>
+    ${(r.addon && r.addon.length) ? `<p class="sub">Bahan tambahan</p><ul class="ing">${r.addon.map(i => `<li>
+      <span>${esc(i.nm)}${i.alt ? `<em>${esc(i.alt)}</em>` : ""}</span>
+      <span class="a">${fmt((+i.a || 0) * mult)} g</span></li>`).join("")}</ul>` : ""}
+  </div>` : "";
 
   return `
   ${blokRasio}
@@ -2886,8 +2891,8 @@ function newRecipe(kind){
     : kind === "mix"
     ? {id:"", kind:"mix", name:"", cat:"susu", tone:"gold", unit:"gelas", note:"",
        ing:[{nm:"", a:0, alt:""}], addon:[]}
-    : {id:"", kind:"note", name:"", tone:"blue", basis:"kopi", def:100, note:"", unit:"batch", ing:[],
-       ratios:[{lb:"", v:0}]};
+    : {id:"", kind:"note", name:"", tone:"blue", art:"jar", unit:"batch", note:"",
+       ing:[{nm:"", a:0, alt:""}], addon:[]};
 }
 
 function editView(){
@@ -2972,18 +2977,15 @@ function editView(){
     <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
   } else {
     body = `
-    <p class="sub">Bahan (opsional)</p>
     <div class="field"><label>Satuan</label><input id="f-unit" value="${esc(d.unit || "batch")}" placeholder="batch"></div>
+
+    <p class="sub">Bahan</p>
     <div id="ings">${(d.ing || []).map((x,i) => ingRow(x,i,"ing")).join("")}</div>
     <button class="add" data-add="ing">+ Tambah bahan</button>
 
-    <p class="sub">Rasio (opsional)</p>
-    <div class="grid2">
-      <div class="field"><label>Basis (bahan yang ditimbang)</label><input id="f-basis" value="${esc(d.basis)}" placeholder="kopi"></div>
-      <div class="field"><label>Berat contoh (g)</label><input id="f-def" type="number" value="${d.def || 100}"></div>
-    </div>
-    <div id="ratios">${(d.ratios || []).map((x,i) => ratioRow(x,i)).join("")}</div>
-    <button class="add" data-add="ratio">+ Tambah rasio</button>
+    <p class="sub">Bahan tambahan (opsional)</p>
+    <div id="addons">${(d.addon || []).map((x,i) => ingRow(x,i,"addon")).join("")}</div>
+    <button class="add" data-add="addon">+ Tambah bahan tambahan</button>
 
     <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
   }
@@ -3179,19 +3181,15 @@ function collectDraft(){
     })).filter(x => x.nm);
     d.ing = grab("#ings"); d.addon = grab("#addons");
   } else {
-    d.basis = q("#f-basis").value.trim() || "bahan";
-    d.def = +q("#f-def").value || 100;
     d.unit = q("#f-unit").value.trim() || "batch";
     d.note = q("#f-note").value.trim();
-    d.ratios = [...app.querySelectorAll("#ratios .ed-row")].map(el => ({
-      lb: el.querySelector(".r-lb").value.trim(),
-      v: +el.querySelector(".r-v").value || 0
-    })).filter(x => x.lb && x.v > 0);
-    d.ing = [...app.querySelectorAll("#ings .ed-row")].map(el => ({
+    const ambil = sel => [...app.querySelectorAll(sel + " .ed-row")].map(el => ({
       nm: el.querySelector(".i-nm").value.trim(),
       a: +el.querySelector(".i-a").value || 0,
       alt: el.querySelector(".i-alt").value.trim()
     })).filter(x => x.nm);
+    d.ing = ambil("#ings");
+    d.addon = ambil("#addons");
   }
   return d;
 }
@@ -3201,7 +3199,7 @@ function validate(d){
   if(d.kind === "esp" && (!d.dose || !d.out || !d.time)) return "Dose, yield, dan waktu harus diisi.";
   if(d.kind === "bean" && !d.roastery) return "Nama roastery belum diisi.";
   if(d.kind === "mix" && !d.ing.length) return "Isi minimal satu bahan.";
-  if(d.kind === "note" && !d.ratios.length && !(d.ing || []).length) return "Isi minimal satu bahan atau satu rasio.";
+  if(d.kind === "note" && !(d.ing || []).length && !(d.ratios || []).length) return "Isi minimal satu bahan.";
   return "";
 }
 
