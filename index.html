@@ -110,7 +110,11 @@ try{
     return Object.keys(p).map(uid => Object.assign({uid, admin: a[uid] === true}, p[uid]))
                  .sort((x, y) => (y.lastSeen || 0) - (x.lastSeen || 0));
   };
-  C.clearUserData = async uid => { await remove(ref(db, "users/" + uid)); };
+  C.clearUserData = async uid => {
+    await remove(ref(db, "users/" + uid));
+    const cek = await get(ref(db, "users/" + uid));
+    if(cek.exists()) throw new Error("server masih menyimpan data, kemungkinan aturan database menolak penghapusan");
+  };
   C.dropMember = async uid => {
     await Promise.all([remove(ref(db, "profiles/" + uid)),
                        remove(ref(db, "users/" + uid)),
@@ -2300,6 +2304,14 @@ function askChoice(title, text, options){
   });
 }
 
+function exportData(){
+  const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "resep-seduh-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+
 /* Kosongkan data di perangkat tanpa mengirim penghapusan ke server. */
 async function wipeLocal(){
   stopWatch();
@@ -2467,33 +2479,62 @@ function scheduleSync(){
   SYNC.timer = setTimeout(syncNow, 1200);
 }
 
+/* Cabang penyimpanan di server dipisah menurut jenis. */
+const cabang = r => r && r.kind === "note" ? "notes" : (r && r.kind === "bean") ? "beans" : "recipes";
+const CABANG = ["recipes", "notes", "beans"];
+
 /* Gabungkan data server dengan data lokal.
-   Aturan: yang stempel waktunya paling baru menang, per resep.
+   Aturan: yang stempel waktunya paling baru menang, per entri.
    Penghapusan disimpan sebagai nisan supaya tidak "hidup lagi" dari perangkat lain. */
+const bucketOf = kind => (kind === "note" || kind === "bean") ? "notes" : "recipes";
+
 function mergeRemote(R){
   R = R || {};
-  const rRec = R.recipes || {}, rTomb = R.tombs || {}, rMeta = R.meta || {};
+  const rRecipes = R.recipes || {}, rNotes = R.notes || {}, rTomb = R.tombs || {}, rMeta = R.meta || {};
+
+  /* satukan dua wadah server untuk dibandingkan, sambil ingat asal wadahnya */
+  const remote = {};
+  Object.keys(rRecipes).forEach(id => remote[id] = { r: rRecipes[id], b: "recipes" });
+  Object.keys(rNotes).forEach(id => remote[id] = { r: rNotes[id], b: "notes" });
+
   const ids = new Set([].concat(Object.keys(store.custom), Object.keys(store.tombs),
-                                Object.keys(rRec), Object.keys(rTomb)));
+                                Object.keys(remote), Object.keys(rTomb)));
   const patch = {};
   let changed = false;
+
+  const tulis = rec => {
+    const b = bucketOf(rec.kind);
+    patch[b + "/" + rec.id] = rec;
+    patch[(b === "recipes" ? "notes" : "recipes") + "/" + rec.id] = null;
+    patch["tombs/" + rec.id] = null;
+  };
+  const hapus = (id, ts) => {
+    patch["recipes/" + id] = null;
+    patch["notes/" + id] = null;
+    patch["tombs/" + id] = ts;
+  };
 
   ids.forEach(id => {
     const lRec  = store.custom[id];
     const lTs   = lRec ? (lRec.updatedAt || 1) : 0;
     const lTomb = store.tombs[id] || 0;
-    const rRc   = rRec[id];
-    const rTs   = rRc ? (rRc.updatedAt || 1) : 0;
+    const rEnt  = remote[id];
+    const rRec  = rEnt && rEnt.r;
+    const rTs   = rRec ? (rRec.updatedAt || 1) : 0;
     const rTb   = rTomb[id] || 0;
     const lBest = Math.max(lTs, lTomb), rBest = Math.max(rTs, rTb);
 
     if(rBest > lBest){
       if(rTb >= rTs){ delete store.custom[id]; store.tombs[id] = rTb; }
-      else { store.custom[id] = rRc; delete store.tombs[id]; }
+      else { store.custom[id] = rRec; delete store.tombs[id]; }
       changed = true;
+      /* server menaruhnya di wadah yang salah, betulkan */
+      if(rRec && rEnt.b !== bucketOf(rRec.kind)) tulis(rRec);
     }else if(lBest > rBest){
-      if(lTomb >= lTs){ patch["recipes/" + id] = null; patch["tombs/" + id] = lTomb; }
-      else { patch["recipes/" + id] = lRec; patch["tombs/" + id] = null; }
+      if(lTomb >= lTs) hapus(id, lTomb);
+      else tulis(lRec);
+    }else if(lRec && rEnt && rEnt.b !== bucketOf(lRec.kind)){
+      tulis(lRec);   /* isinya sama, tapi wadahnya perlu dipindah */
     }
   });
 
@@ -2598,12 +2639,16 @@ setInterval(() => { if(!document.hidden && navigator.onLine) syncNow(); }, 12000
 function accountCard(){
   const c = cloud();
   if(!c.online) return `<div class="card acc">
-    <b>Akun</b><p class="muted">Server tidak bisa dihubungi. ${esc(errText(c.err))} Data tetap tersimpan di perangkat ini.</p></div>`;
+    <b>Akun</b><p class="muted">Server tidak bisa dihubungi. ${esc(errText(c.err))} Data tetap tersimpan di perangkat ini.</p>
+    <div class="cta"><button class="btn ghost" style="flex:1" data-wipeall>Kosongkan data</button></div></div>`;
   if(!c.user) return `<div class="card acc">
     <b>Masuk untuk sinkron</b>
     <p class="muted">Tanpa masuk, resep hanya tersimpan di perangkat ini. Setelah masuk, semua resep ikut tersimpan di akunmu dan otomatis muncul di perangkat lain.</p>
     ${c.err ? `<p class="muted">${esc(errText(c.err))}</p>` : ""}
-    <div class="cta"><button class="btn" data-signin>Masuk dengan Google</button></div></div>`;
+    <div class="cta">
+      <button class="btn" data-signin>Masuk dengan Google</button>
+      <button class="btn ghost" data-wipeall>Kosongkan</button>
+    </div></div>`;
   return `<div class="card acc">
     <div class="accrow">
       ${c.user.photo ? `<img class="ava" src="${esc(c.user.photo)}" alt="">`
@@ -3355,15 +3400,26 @@ function bind(v){
   const wa = app.querySelector("[data-wipeall]");
   if(wa) wa.onclick = async () => {
     const pilih = await askChoice("Kosongkan data",
-      "Semua resep dan catatan dihapus dari perangkat ini sekaligus dari akunmu di server. Tidak bisa dibatalkan, jadi ekspor dulu kalau perlu.",
-      [{label:"Kosongkan semuanya", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
-    if(pilih !== "y") return;
+      "Semua resep dan catatan dihapus dari perangkat ini sekaligus dari akunmu di server, termasuk yang belum pernah diekspor. Tidak bisa dibatalkan.",
+      [{label:"Ekspor dulu, lalu kosongkan", value:"ekspor"},
+       {label:"Kosongkan tanpa cadangan", value:"y", tone:"danger"},
+       {label:"Batal", value:null}]);
+    if(!pilih) return;
+    if(pilih === "ekspor"){ exportData(); await new Promise(r => setTimeout(r, 900)); }
     SYNC.paused = true;
     stopWatch();
     try{
       await wipeLocal();
-      if(cloud().clearUserData && cloud().user) await cloud().clearUserData(cloud().user.uid);
-    }catch(e){ alert("Data perangkat sudah dikosongkan, tapi server gagal: " + (e.message || e)); }
+      if(cloud().clearUserData && cloud().user){
+        await cloud().clearUserData(cloud().user.uid);
+        SYNC.status = "ok"; SYNC.at = Date.now();
+      }
+    }catch(e){
+      await askChoice("Server belum bersih",
+        "Data di perangkat ini sudah dikosongkan, tapi penghapusan di server gagal: " + (e.message || e) +
+        ". Coba lagi setelah online, atau periksa aturan database.",
+        [{label:"Mengerti", value:"ok"}]);
+    }
     finally{ SYNC.paused = false; render(); }
   };
 
@@ -3373,13 +3429,15 @@ function bind(v){
       "Keluar dari akun",
       "Resepmu sudah tersimpan di akun dan bisa dibuka lagi setelah masuk. Mau data di perangkat ini ikut dihapus?",
       [{label:"Keluar saja", value:"keep"},
+       {label:"Ekspor dulu, lalu keluar dan hapus", value:"ekspor", tone:"danger"},
        {label:"Keluar dan hapus data perangkat", value:"wipe", tone:"danger"},
        {label:"Batal", value:null}]);
+    if(pilih === "ekspor"){ exportData(); await new Promise(r => setTimeout(r, 900)); }
     if(pilih === null) return;
     SYNC.paused = true;
     stopWatch();
     try{
-      if(pilih === "wipe") await wipeLocal();
+      if(pilih === "wipe" || pilih === "ekspor") await wipeLocal();
       await cloud().signOut();
     }finally{ SYNC.paused = false; }
     render();
@@ -3396,13 +3454,7 @@ function bind(v){
     if(navigator.share) navigator.share({title:"Resep seduh", url:sl.dataset.sendlink}).catch(()=>{});
     else prompt("Salin tautan ini:", sl.dataset.sendlink);
   };
-  app.querySelectorAll("[data-export]").forEach(ex => ex.onclick = () => {
-    const blob = new Blob([JSON.stringify(store, null, 2)], {type:"application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "resep-seduh-" + new Date().toISOString().slice(0,10) + ".json";
-    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
-  });
+  app.querySelectorAll("[data-export]").forEach(ex => ex.onclick = () => exportData());
   app.querySelectorAll("[data-import]").forEach(im => im.onclick = () => app.querySelector("#fimp").click());
   const fi = app.querySelector("#fimp");
   if(fi) fi.onchange = e => {
