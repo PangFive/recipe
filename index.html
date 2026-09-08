@@ -1812,11 +1812,12 @@ const ART_LABEL = {
   chemex:"Chemex", frenchpress:"French press", aeropress:"Aeropress",
   latte:"Es kopi susu", mocktail:"Mocktail cold brew", mojito:"Mojito", teh:"Teh tarik",
   pan:"Masak sirup", bottle:"Botol sirup", jar:"Toples konsentrat",
-  espmachine:"Mesin espresso", espresso:"Portafilter", beanbag:"Kantong beans", teapot:"Teko teh"
+  espmachine:"Mesin espresso", espresso:"Portafilter",
+  beanbag:"Kantong beans", beans:"Kantong biji berlabel", teapot:"Teko teh"
 };
 /* urutan tampil: alat seduh dulu, baru minuman dan bahan */
 const ART_ORDER = ["v60","switch","switchice","icedrip","kalita","origami","orea","oreao1","chemex","frenchpress","aeropress",
-                   "espmachine","espresso","beanbag","latte","mocktail","mojito","teh","teapot","pan","bottle","jar"];
+                   "espmachine","espresso","beanbag","beans","latte","mocktail","mojito","teh","teapot","pan","bottle","jar"];
 
 /* Tebak ilustrasi dari nama dripper yang dipilih. */
 function artFromDripper(nama, dingin){
@@ -2388,7 +2389,15 @@ function pickerOptions(id){
     preview:`<span class="swatch" style="background:${TONE_HEX[k]}"></span>`}));
   if(id === "f-art"){
     const tone = (document.getElementById("f-tone") || {}).value || "green";
-    return ART_ORDER.filter(k => ART[k]).map(k => ({
+    const jenis = (state.draft && state.draft.kind) || "brew";
+    const utama = {
+      bean: ["beanbag", "beans", "jar", "bottle"],
+      note: ["jar", "bottle", "pan", "beanbag"],
+      esp:  ["espmachine", "espresso"],
+      mix:  ["latte", "mocktail", "mojito", "teh", "teapot", "bottle", "pan"]
+    }[jenis] || [];
+    const urut = utama.concat(ART_ORDER.filter(k => !utama.includes(k)));
+    return urut.filter(k => ART[k]).map(k => ({
       value:k, label:ART_LABEL[k] || k, preview:artSVG(k, 34, false, tone)}));
   }
   if(id === "f-dripper") return dripperList().map(x => ({value:x, label:x,
@@ -2969,10 +2978,7 @@ function editView(){
     <div class="field"><label>Tips</label><textarea id="f-tips" placeholder="WDT dulu, tamping rata...">${esc(d.tips)}</textarea></div>`;
   } else if(d.kind === "mix"){
     body = `
-    <div class="grid2">
-      <div class="field"><label>Satuan</label><input id="f-unit" value="${esc(d.unit)}" placeholder="gelas"></div>
-      <div class="field"><label>Warna kartu</label>${toneSel}</div>
-    </div>
+    <div class="field"><label>Satuan</label><input id="f-unit" value="${esc(d.unit)}" placeholder="gelas"></div>
     <p class="sub">Bahan</p>
     <div id="ings">${d.ing.map((x,i) => ingRow(x,i,"ing")).join("")}</div>
     <button class="add" data-add="ing">+ Tambah bahan</button>
@@ -3009,7 +3015,7 @@ function editView(){
     ${d.kind === "brew" ? `<div class="field"><label>Dripper / alat</label>
       ${pickField("f-dripper", d.dripper, "Pilih dripper")}</div>` : ""}
     ${catSel}
-    ${d.kind === "brew" ? `<div class="field"><label>Warna kartu</label>${toneSel}</div>` : ""}
+    <div class="field"><label>Warna kartu</label>${toneSel}</div>
     <div class="field"><label>Ilustrasi</label>
       ${pickField("f-art", artKey(d), "Pilih ilustrasi")}</div>
     <div class="artprev">${artFor({...d, art:artKey(d)}, 62, "light")}</div>
