@@ -110,6 +110,7 @@ try{
     return Object.keys(p).map(uid => Object.assign({uid, admin: a[uid] === true}, p[uid]))
                  .sort((x, y) => (y.lastSeen || 0) - (x.lastSeen || 0));
   };
+  C.clearUserData = async uid => { await remove(ref(db, "users/" + uid)); };
   C.dropMember = async uid => {
     await Promise.all([remove(ref(db, "profiles/" + uid)),
                        remove(ref(db, "users/" + uid)),
@@ -1501,6 +1502,15 @@ function migrateStore(){
   delete store.deleted;
   delete store.author;
   Object.values(store.custom).forEach(r => { if(!r.updatedAt) r.updatedAt = 1; });
+  /* sirup dan saus pindah dari racikan ke catatan bahan */
+  Object.values(store.custom).forEach(r => {
+    if(r.kind === "mix" && r.cat === "sirup"){
+      r.kind = "note"; r.basis = r.basis || "bahan"; r.def = r.def || 100;
+      r.ratios = r.ratios || []; r.unit = r.unit || "batch";
+      delete r.cat; delete r.addon;
+      r.updatedAt = Date.now();
+    }
+  });
   store.metaAt = store.metaAt || 1;
 }
 async function saveStore(fromSync){
@@ -2017,7 +2027,8 @@ function listMeta(r){
     return [r.roastery, n + " catatan ekstraksi"].filter(Boolean).join(" · ");
   }
   if(r.kind === "mix") return r.ing.length + " bahan, per " + r.unit;
-  return "Catatan rasio dari berat " + r.basis;
+  if(r.ratios && r.ratios.length) return "Rasio dari berat " + r.basis;
+  return (r.ing || []).length + " bahan, per " + (r.unit || "batch");
 }
 
 function listView(){
@@ -2068,11 +2079,11 @@ function notesView(){
       <span class="bd"><b>Catatan beans baru</b><span>nama kopi, roastery, taste note, hasil ekstraksi</span></span>
     </button>
 
-    <div class="sec-h"><h3>Rasio &amp; konsentrat</h3></div>
+    <div class="sec-h"><h3>Rasio, konsentrat &amp; bahan</h3></div>
     ${notes.length ? notes.map(rowHTML).join("") : '<p class="empty">Belum ada catatan rasio.</p>'}
     <button class="row" data-new="note">
       <span class="ic gold">${ICON.plus}</span>
-      <span class="bd"><b>Catatan rasio baru</b><span>konsentrat, larutan, patokan</span></span>
+      <span class="bd"><b>Catatan rasio baru</b><span>konsentrat, sirup, larutan, patokan</span></span>
     </button>
   </div>`;
 }
@@ -2081,7 +2092,8 @@ function detailView(){
   const r = byId(state.id);
   if(!r) return `<div class="wrap"><p class="empty">Resep tidak ditemukan.</p></div>`;
   if(state.scale[r.id] === undefined)
-    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose : r.kind === "note" ? r.def : 1;
+    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose
+      : r.kind === "note" ? ((r.ratios && r.ratios.length) ? r.def : 1) : 1;
   const v = state.scale[r.id];
   const fav = store.favs.includes(r.id);
 
@@ -2221,9 +2233,13 @@ function mixDetail(r, mult){
 }
 
 function noteDetail(r, g){
-  return `
+  const adaRasio = !!(r.ratios && r.ratios.length);
+  const adaBahan = !!(r.ing && r.ing.length);
+  const mult = adaRasio ? 1 : g;
+
+  const blokRasio = adaRasio ? `
   <div class="card">
-    <label class="t-lbl" style="color:var(--faint)">Berat ${esc(r.basis)}</label>
+    <label class="t-lbl" style="color:var(--faint)">Berat ${esc(r.basis || "bahan")}</label>
     <div style="display:flex;gap:10px;align-items:center;margin-top:8px">
       <input id="nin" type="number" inputmode="decimal" min="0" value="${g}" style="width:110px">
       <span style="color:var(--muted)">gram</span>
@@ -2231,7 +2247,25 @@ function noteDetail(r, g){
     <div class="note-out" id="nout">
       ${r.ratios.map(x => `<span><b>${fmt(g*x.v)} g</b><span>${esc(x.lb)}</span></span>`).join("")}
     </div>
-  </div>
+  </div>` : "";
+
+  const totalB = adaBahan ? r.ing.reduce((a2,i) => a2 + (+i.a || 0), 0) * mult : 0;
+  const blokBahan = adaBahan ? `
+  ${adaRasio ? "" : `<div class="card">
+    <div class="dose">
+      <span><span class="t-lbl" style="color:var(--faint)">Jumlah</span><br>
+        <span class="dose-v">${fmt(mult)}<small>${esc(r.unit || "batch")}</small></span></span>
+      <span class="stepper"><button data-d="-0.5">−</button><button data-d="0.5">+</button></span>
+    </div>
+    <div class="yields"><span><b>${fmt(totalB)} g</b><span>perkiraan berat total</span></span></div>
+  </div>`}
+  <div class="card"><ul class="ing">${r.ing.map(i => `<li>
+    <span>${esc(i.nm)}${i.alt ? `<em>${esc(i.alt)}</em>` : ""}</span>
+    <span class="a">${fmt((+i.a || 0) * mult)} g</span></li>`).join("")}</ul></div>` : "";
+
+  return `
+  ${blokRasio}
+  ${blokBahan}
   ${r.note ? `<div class="tip"><h4>${ICON.bulb} Catatan</h4><p>${esc(r.note)}</p></div>` : ""}
   <div class="cta"><button class="btn ghost" style="flex:1" data-edit>Edit catatan</button></div>
   ${state.view === "detail" ? shareCard(r) : ""}`;
@@ -2619,6 +2653,7 @@ function adminMembers(){
       <span>${m.lastSeen ? "Terakhir aktif " + tgl(m.lastSeen) : ""}</span>
       <span class="admbtn">
         <button data-adm="${esc(m.uid)}" data-val="${m.admin ? "0" : "1"}">${m.admin ? "Cabut admin" : "Jadikan admin"}</button>
+        <button class="danger" data-clearm="${esc(m.uid)}">Kosongkan data</button>
         ${m.uid === c.user.uid ? "" : `<button class="danger" data-dropm="${esc(m.uid)}">Hapus anggota</button>`}
       </span>
     </span>
@@ -2763,7 +2798,8 @@ function remoteView(){
     <p class="empty">Memuat resep...</p></div>`;
   const r = it.data;
   if(state.scale[r.id] === undefined)
-    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose : r.kind === "note" ? r.def : 1;
+    state.scale[r.id] = (r.kind === "brew" || r.kind === "esp") ? r.dose
+      : r.kind === "note" ? ((r.ratios && r.ratios.length) ? r.def : 1) : 1;
   const v = state.scale[r.id];
   const head = `<div class="bar"><button class="lnk" data-back>${ICON.back} Kembali</button></div>
     <div class="head ${r.tone || ""}">
@@ -2850,7 +2886,7 @@ function newRecipe(kind){
     : kind === "mix"
     ? {id:"", kind:"mix", name:"", cat:"susu", tone:"gold", unit:"gelas", note:"",
        ing:[{nm:"", a:0, alt:""}], addon:[]}
-    : {id:"", kind:"note", name:"", tone:"blue", basis:"kopi", def:100, note:"",
+    : {id:"", kind:"note", name:"", tone:"blue", basis:"kopi", def:100, note:"", unit:"batch", ing:[],
        ratios:[{lb:"", v:0}]};
 }
 
@@ -2936,13 +2972,19 @@ function editView(){
     <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
   } else {
     body = `
+    <p class="sub">Bahan (opsional)</p>
+    <div class="field"><label>Satuan</label><input id="f-unit" value="${esc(d.unit || "batch")}" placeholder="batch"></div>
+    <div id="ings">${(d.ing || []).map((x,i) => ingRow(x,i,"ing")).join("")}</div>
+    <button class="add" data-add="ing">+ Tambah bahan</button>
+
+    <p class="sub">Rasio (opsional)</p>
     <div class="grid2">
       <div class="field"><label>Basis (bahan yang ditimbang)</label><input id="f-basis" value="${esc(d.basis)}" placeholder="kopi"></div>
-      <div class="field"><label>Berat contoh (g)</label><input id="f-def" type="number" value="${d.def}"></div>
+      <div class="field"><label>Berat contoh (g)</label><input id="f-def" type="number" value="${d.def || 100}"></div>
     </div>
-    <p class="sub">Rasio</p>
-    <div id="ratios">${d.ratios.map((x,i) => ratioRow(x,i)).join("")}</div>
+    <div id="ratios">${(d.ratios || []).map((x,i) => ratioRow(x,i)).join("")}</div>
     <button class="add" data-add="ratio">+ Tambah rasio</button>
+
     <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
   }
 
@@ -3139,11 +3181,17 @@ function collectDraft(){
   } else {
     d.basis = q("#f-basis").value.trim() || "bahan";
     d.def = +q("#f-def").value || 100;
+    d.unit = q("#f-unit").value.trim() || "batch";
     d.note = q("#f-note").value.trim();
     d.ratios = [...app.querySelectorAll("#ratios .ed-row")].map(el => ({
       lb: el.querySelector(".r-lb").value.trim(),
       v: +el.querySelector(".r-v").value || 0
     })).filter(x => x.lb && x.v > 0);
+    d.ing = [...app.querySelectorAll("#ings .ed-row")].map(el => ({
+      nm: el.querySelector(".i-nm").value.trim(),
+      a: +el.querySelector(".i-a").value || 0,
+      alt: el.querySelector(".i-alt").value.trim()
+    })).filter(x => x.nm);
   }
   return d;
 }
@@ -3153,7 +3201,7 @@ function validate(d){
   if(d.kind === "esp" && (!d.dose || !d.out || !d.time)) return "Dose, yield, dan waktu harus diisi.";
   if(d.kind === "bean" && !d.roastery) return "Nama roastery belum diisi.";
   if(d.kind === "mix" && !d.ing.length) return "Isi minimal satu bahan.";
-  if(d.kind === "note" && !d.ratios.length) return "Isi minimal satu rasio.";
+  if(d.kind === "note" && !d.ratios.length && !(d.ing || []).length) return "Isi minimal satu bahan atau satu rasio.";
   return "";
 }
 
@@ -3211,6 +3259,19 @@ function bind(v){
       try{ await cloud().setAdmin(b.dataset.adm, b.dataset.val === "1"); await loadAdmin(); }
       catch(e){ alert("Gagal: " + (e.message || e)); render(); }
     });
+    app.querySelectorAll("[data-clearm]").forEach(b => b.onclick = async () => {
+      const uid = b.dataset.clearm, sendiri = uid === cloud().user.uid;
+      const pilih = await askChoice("Kosongkan data anggota",
+        "Semua resep dan catatan milik anggota ini dihapus dari server. Akunnya tetap ada dan bisa dipakai lagi." +
+        (sendiri ? " Ini akunmu sendiri, data di perangkat ini ikut dikosongkan." : " Salinan yang sudah terlanjur ada di perangkatnya tidak ikut terhapus sampai perangkat itu tersinkron."),
+        [{label:"Kosongkan", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
+      if(pilih !== "y") return;
+      try{
+        await cloud().clearUserData(uid);
+        if(sendiri) await wipeLocal();
+        await loadAdmin();
+      }catch(e){ alert("Gagal: " + (e.message || e)); }
+    });
     app.querySelectorAll("[data-dropm]").forEach(b => b.onclick = async () => {
       const pilih = await askChoice("Hapus anggota",
         "Profil dan seluruh resep pribadi anggota ini akan dihapus dari server. Akun Google-nya sendiri tidak bisa dihapus dari sini, dan resep yang sudah tersimpan di perangkatnya tetap ada.",
@@ -3227,7 +3288,8 @@ function bind(v){
       try{
         await cloud().unpublish(b.dataset.delshare);
         Object.keys(store.shares).forEach(k => { if(store.shares[k] === b.dataset.delshare) delete store.shares[k]; });
-        store.metaAt = Date.now(); saveStore();
+        store.metaAt = Date.now();
+        migrateStore(); saveStore();
         await loadAdmin();
       }catch(e){ alert("Gagal: " + (e.message || e)); }
     });
@@ -3324,6 +3386,7 @@ function bind(v){
         store.custom = Object.assign({}, store.custom, masuk);
         store.favs = [...new Set((store.favs || []).concat(d.favs || []))];
         store.metaAt = Date.now();
+        migrateStore();
         saveStore(); render();
       }catch(err){ alert("File cadangan tidak terbaca."); }
     };
