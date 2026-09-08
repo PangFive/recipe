@@ -2302,6 +2302,7 @@ function askChoice(title, text, options){
 /* Kosongkan data di perangkat tanpa mengirim penghapusan ke server. */
 async function wipeLocal(){
   stopWatch();
+  clearTimeout(SYNC.timer);
   store.custom = {}; store.tombs = {}; store.favs = []; store.shares = {};
   store.metaAt = 1; store.owner = null; store.last = null;
   await saveStore(true);
@@ -2449,9 +2450,10 @@ function openPicker(title, options, current, allowCustom){
 }
 
 /* ============ sinkronisasi dua arah ============ */
-const SYNC = { status:"idle", at:0, err:null, timer:null, watching:false, busy:false };
+const SYNC = { status:"idle", at:0, err:null, timer:null, watching:false, busy:false, paused:false };
 
 function scheduleSync(){
+  if(SYNC.paused) return;
   clearTimeout(SYNC.timer);
   SYNC.timer = setTimeout(syncNow, 1200);
 }
@@ -2500,7 +2502,7 @@ function mergeRemote(R){
 
 async function syncNow(){
   const c = cloud();
-  if(!c.ready || !c.pull || SYNC.busy) return;
+  if(!c.ready || !c.pull || SYNC.busy || SYNC.paused) return;
   if(!navigator.onLine){ SYNC.status = "offline"; refreshSync(); return; }
 
   SYNC.busy = true;   /* dikunci sejak awal supaya tidak ada sinkron ganda saat dialog terbuka */
@@ -2553,7 +2555,7 @@ function startWatch(){
   if(SYNC.watching || !c.watch || !c.ready) return;
   SYNC.watching = true;
   SYNC.unwatch = c.watch(async R => {
-    if(SYNC.busy) return;
+    if(SYNC.busy || SYNC.paused) return;
     const { patch, changed } = mergeRemote(R);
     if(changed || Object.keys(patch).length){
       await saveStore(true);
@@ -2601,7 +2603,10 @@ function accountCard(){
       <button class="lnk" data-signout>Keluar</button>
     </div>
     <p class="muted" id="syncline">${syncText()}</p>
-    ${c.admin ? '<div class="cta"><button class="btn ghost" style="flex:1" data-admin>Kelola aplikasi</button></div>' : ""}
+    <div class="cta">
+      ${c.admin ? '<button class="btn ghost" style="flex:1" data-admin>Kelola aplikasi</button>' : ""}
+      <button class="btn ghost" style="flex:1" data-wipeall>Kosongkan data</button>
+    </div>
     ${(!c.admin && ADM.anyAdmin === false) ? '<div class="cta"><button class="btn" data-claim>Jadikan saya admin</button></div>' : ""}
     </div>`;
 }
@@ -3264,11 +3269,14 @@ function bind(v){
         (sendiri ? " Ini akunmu sendiri, data di perangkat ini ikut dikosongkan." : " Salinan yang sudah terlanjur ada di perangkatnya tidak ikut terhapus sampai perangkat itu tersinkron."),
         [{label:"Kosongkan", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
       if(pilih !== "y") return;
+      SYNC.paused = true;
+      stopWatch();
       try{
+        if(sendiri) await wipeLocal();          /* lokal dulu, biar tidak terkirim balik */
         await cloud().clearUserData(uid);
-        if(sendiri) await wipeLocal();
         await loadAdmin();
       }catch(e){ alert("Gagal: " + (e.message || e)); }
+      finally{ SYNC.paused = false; }
     });
     app.querySelectorAll("[data-dropm]").forEach(b => b.onclick = async () => {
       const pilih = await askChoice("Hapus anggota",
@@ -3338,6 +3346,21 @@ function bind(v){
   }
 
   app.querySelectorAll("[data-signin]").forEach(b => b.onclick = () => { b.textContent = "Membuka..."; cloud().signIn(); });
+  const wa = app.querySelector("[data-wipeall]");
+  if(wa) wa.onclick = async () => {
+    const pilih = await askChoice("Kosongkan data",
+      "Semua resep dan catatan dihapus dari perangkat ini sekaligus dari akunmu di server. Tidak bisa dibatalkan, jadi ekspor dulu kalau perlu.",
+      [{label:"Kosongkan semuanya", value:"y", tone:"danger"}, {label:"Batal", value:null}]);
+    if(pilih !== "y") return;
+    SYNC.paused = true;
+    stopWatch();
+    try{
+      await wipeLocal();
+      if(cloud().clearUserData && cloud().user) await cloud().clearUserData(cloud().user.uid);
+    }catch(e){ alert("Data perangkat sudah dikosongkan, tapi server gagal: " + (e.message || e)); }
+    finally{ SYNC.paused = false; render(); }
+  };
+
   const so = app.querySelector("[data-signout]");
   if(so) so.onclick = async () => {
     const pilih = await askChoice(
@@ -3347,9 +3370,12 @@ function bind(v){
        {label:"Keluar dan hapus data perangkat", value:"wipe", tone:"danger"},
        {label:"Batal", value:null}]);
     if(pilih === null) return;
+    SYNC.paused = true;
     stopWatch();
-    if(pilih === "wipe") await wipeLocal();
-    await cloud().signOut();
+    try{
+      if(pilih === "wipe") await wipeLocal();
+      await cloud().signOut();
+    }finally{ SYNC.paused = false; }
     render();
   };
   const ra = app.querySelector("[data-retryauth]");
