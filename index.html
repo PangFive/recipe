@@ -1938,7 +1938,7 @@ function homeView(){
         <span class="t-sub">kopi susu, cold brew, sirup</span>
       </button>
 
-      <button class="tile blue" data-view="list" data-kind="bean">
+      <button class="tile blue" data-view="notes">
         <span class="t-lbl">Beans</span>
         <span class="t-num">${beans.length}</span>
         <span class="t-sub">biji kopi dan hasil ekstraksinya</span>
@@ -1963,10 +1963,6 @@ function homeView(){
       <span class="ic green">${ICON.plus}</span>
       <span class="bd"><b>Resep pour over baru</b><span>langkah, waktu, suhu, dripper, tips</span></span>
     </button>
-    <button class="row" data-new="bean">
-      <span class="ic blue">${ICON.plus}</span>
-      <span class="bd"><b>Catatan beans baru</b><span>nama kopi, roastery, taste note, hasil seduh</span></span>
-    </button>
     <button class="row" data-new="esp">
       <span class="ic red">${ICON.plus}</span>
       <span class="bd"><b>Resep espresso baru</b><span>dose, yield, waktu, fase</span></span>
@@ -1974,6 +1970,10 @@ function homeView(){
     <button class="row" data-new="mix">
       <span class="ic gold">${ICON.plus}</span>
       <span class="bd"><b>Racikan baru</b><span>daftar bahan dan takaran</span></span>
+    </button>
+    <button class="row" data-new="bean">
+      <span class="ic blue">${ICON.plus}</span>
+      <span class="bd"><b>Catatan beans baru</b><span>nama kopi, roastery, taste note, hasil ekstraksi</span></span>
     </button>
     <button class="row" data-new="note">
       <span class="ic blue">${ICON.plus}</span>
@@ -2022,11 +2022,10 @@ function listMeta(r){
 
 function listView(){
   const q = state.q.trim().toLowerCase();
-  let list = recipes().filter(r => r.kind !== "note");
+  let list = recipes().filter(r => r.kind !== "note" && r.kind !== "bean");
   if(state.cat === "brew") list = list.filter(r => r.kind === "brew");
   else if(state.cat === "esp") list = list.filter(r => r.kind === "esp");
   else if(state.cat === "mix") list = list.filter(r => r.kind === "mix");
-  else if(state.cat === "bean") list = list.filter(r => r.kind === "bean");
   else if(state.cat !== "all") list = list.filter(r => r.cat === state.cat);
   if(q) list = list.filter(r => r.name.toLowerCase().includes(q) ||
       (r.ing || []).some(i => i.nm.toLowerCase().includes(q)) ||
@@ -2034,7 +2033,7 @@ function listView(){
       (r.roastery || "").toLowerCase().includes(q) ||
       (r.flavor || "").toLowerCase().includes(q));
 
-  const chips = [["all","Semua"],["brew","Pour over"],["esp","Espresso"],["mix","Racikan"],["bean","Beans"]]
+  const chips = [["all","Semua"],["brew","Pour over"],["esp","Espresso"],["mix","Racikan"]]
     .concat(catList().map(c => [c.key, c.lb]))
     .map(([k,v]) => `<button class="chip" aria-pressed="${state.cat===k}" data-cat="${k}">${v}</button>`).join("");
 
@@ -2042,19 +2041,38 @@ function listView(){
     <div class="top"><h1 class="hello">Resep</h1></div>
     <div class="search">${ICON.search}<input id="q" type="search" placeholder="Cari resep, bahan, dripper" value="${esc(state.q)}"></div>
     <div class="chips">${chips}</div>
-    ${list.length ? list.map(rowHTML).join("") : '<p class="empty">Belum ada yang cocok. Ganti kata kunci atau buat resep baru.</p>'}
+    ${daftarResep(list)}
   </div>`;
 }
 
+function daftarResep(list){
+  if(!list.length) return '<p class="empty">Belum ada yang cocok. Ganti kata kunci atau buat resep baru.</p>';
+  const resep = list.filter(r => r.kind === "brew" || r.kind === "esp");
+  const racik = list.filter(r => r.kind === "mix");
+  if(!resep.length || !racik.length) return list.map(rowHTML).join("");
+  return `<div class="sec-h"><h3>Resep seduh</h3></div>${resep.map(rowHTML).join("")}
+          <div class="sec-h"><h3>Racikan</h3></div>${racik.map(rowHTML).join("")}`;
+}
+
 function notesView(){
+  const beans = recipes().filter(r => r.kind === "bean");
   const notes = recipes().filter(r => r.kind === "note");
   return `<div class="wrap">
-    <div class="top"><h1 class="hello">Catatan &amp; rasio</h1>
-      <p class="today">Bahan dasar yang dipakai berulang. Bukan resep jadi.</p></div>
-    ${notes.map(rowHTML).join("")}
-    <button class="row" data-new="note">
+    <div class="top"><h1 class="hello">Catatan</h1>
+      <p class="today">Catatan biji kopi dan patokan rasio yang dipakai berulang.</p></div>
+
+    <div class="sec-h"><h3>Beans</h3></div>
+    ${beans.length ? beans.map(rowHTML).join("") : '<p class="empty">Belum ada catatan biji kopi.</p>'}
+    <button class="row" data-new="bean">
       <span class="ic blue">${ICON.plus}</span>
-      <span class="bd"><b>Catatan baru</b><span>simpan patokan rasio sendiri</span></span>
+      <span class="bd"><b>Catatan beans baru</b><span>nama kopi, roastery, taste note, hasil ekstraksi</span></span>
+    </button>
+
+    <div class="sec-h"><h3>Rasio &amp; konsentrat</h3></div>
+    ${notes.length ? notes.map(rowHTML).join("") : '<p class="empty">Belum ada catatan rasio.</p>'}
+    <button class="row" data-new="note">
+      <span class="ic gold">${ICON.plus}</span>
+      <span class="bd"><b>Catatan rasio baru</b><span>konsentrat, larutan, patokan</span></span>
     </button>
   </div>`;
 }
@@ -2809,10 +2827,10 @@ async function toggleShare(id){
 function navHTML(v){
   return `<nav class="nav"><div class="nav-in">
     <button data-view="home" aria-current="${v==="home"}">${ICON.home}Beranda</button>
-    <button data-view="list" aria-current="${v==="list"}">${ICON.book}Resep</button>
-    <button data-view="list" data-kind="bean" aria-current="${v==="list" && state.cat==="bean"}">${ICON.bean}Beans</button>
+    <button data-view="list" data-kind="all" aria-current="${v==="list"}">${ICON.book}Resep</button>
+    <button data-view="notes" aria-current="${v==="notes"}">${ICON.note}Catatan</button>
     <button data-view="explore" aria-current="${v==="explore"}">${ICON.globe}Jelajah</button>
-    <button class="fab" data-new="brew" aria-label="Tambah resep">${ICON.plus}</button>
+    <button class="fab" data-addnew aria-label="Tambah">${ICON.plus}</button>
   </div></nav>`;
 }
 
@@ -2928,7 +2946,7 @@ function editView(){
     <div class="field"><label>Catatan</label><textarea id="f-note">${esc(d.note)}</textarea></div>`;
   }
 
-  const catSel = d.kind === "note" ? "" : `<div class="field"><label>Kategori</label>
+  const catSel = (d.kind === "note" || d.kind === "bean") ? "" : `<div class="field"><label>Kategori</label>
     ${pickField("f-cat", d.cat, "Kategori")}</div>`;
 
   return `<div class="wrap">
@@ -2936,7 +2954,9 @@ function editView(){
       <span style="color:var(--muted);font-size:13px">${isNew ? "Baru" : "Edit"} · ${kindName(d.kind)}</span></div>
     <h1 class="hello" style="margin-top:8px">${isNew ? "Buat " + kindName(d.kind).toLowerCase() : esc(d.name)}</h1>
 
-    <div class="field"><label>Nama</label><input id="f-name" value="${esc(d.name)}" placeholder="Nama resep"></div>
+    <div class="field"><label>${d.kind === "bean" ? "Nama kopi" : "Nama"}</label>
+      <input id="f-name" value="${esc(d.name)}" placeholder="${d.kind === "bean" ? "Misal Gayo Natural Lot 4"
+        : d.kind === "note" ? "Misal Konsentrat Cold Brew" : "Nama resep"}"></div>
     ${d.kind === "brew" ? `<div class="field"><label>Dripper / alat</label>
       ${pickField("f-dripper", d.dripper, "Pilih dripper")}</div>` : ""}
     ${catSel}
@@ -3152,6 +3172,18 @@ function bind(v){
   app.querySelectorAll("[data-new]").forEach(b => b.onclick = () => {
     state.draft = newRecipe(b.dataset.new); go("edit");
   });
+  const fab = app.querySelector("[data-addnew]");
+  if(fab) fab.onclick = async () => {
+    const pilih = await openPicker("Tambah apa?", [
+      {value:"brew", label:"Resep pour over", sub:"langkah tuang, waktu, dripper", preview:artSVG("v60", 34, false, "green")},
+      {value:"esp",  label:"Resep espresso",  sub:"dose, yield, waktu shot",       preview:artSVG("espmachine", 34, false, "red")},
+      {value:"mix",  label:"Racikan",         sub:"daftar bahan dan takaran",      preview:artSVG("latte", 34, false, "gold")},
+      {value:"bean", label:"Catatan beans",   sub:"biji kopi dan hasil ekstraksi", preview:artSVG("beans", 34, false, "gold")},
+      {value:"note", label:"Catatan rasio",   sub:"konsentrat dan patokan dasar",  preview:artSVG("jar", 34, false, "blue")}
+    ], null);
+    if(!pilih) return;
+    state.draft = newRecipe(pilih); go("edit");
+  };
   if(v === "explore" && !state.explore.items && !state.explore.loading && !state.explore.err) loadExplore();
 
   app.querySelectorAll("[data-remote]").forEach(b => b.onclick = () => openRemote(b.dataset.remote));
