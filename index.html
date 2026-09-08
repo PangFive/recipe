@@ -2048,6 +2048,8 @@ function listView(){
       (r.ing || []).some(i => i.nm.toLowerCase().includes(q)) ||
       (r.dripper || "").toLowerCase().includes(q) ||
       (r.roastery || "").toLowerCase().includes(q) ||
+      (r.producer || "").toLowerCase().includes(q) ||
+      (r.variety || "").toLowerCase().includes(q) ||
       (r.flavor || "").toLowerCase().includes(q));
 
   const chips = [["all","Semua"],["brew","Pour over"],["esp","Espresso"],["mix","Racikan"]]
@@ -2347,12 +2349,15 @@ const beanRatio = e => (e.dose > 0 && e.water > 0) ? "1:" + fmt(e.water / e.dose
 
 function beanDetail(r){
   const list = (r.entries || []).slice().sort((a,b) => (b.at || 0) - (a.at || 0));
-  const info = [["Proses", r.process], ["Asal", r.origin], ["Roast", r.roast], ["Catatan", (r.entries || []).length + "×"]]
+  const info = [["Producer", r.producer], ["Varietas", r.variety], ["Proses", r.process],
+                ["Asal", r.origin], ["Roast", r.roast], ["Catatan", (r.entries || []).length + "×"]]
     .filter(x => x[1]);
+  const baris = [];
+  for(let i = 0; i < info.length; i += 4) baris.push(info.slice(i, i + 4));
 
   return `
-  ${info.length ? `<div class="specs">${info.map(x =>
-    `<span class="spec"><i>${esc(x[0])}</i><b>${esc(x[1])}</b></span>`).join("")}</div>` : ""}
+  ${baris.map(row => `<div class="specs" style="grid-template-columns:repeat(${row.length},1fr)">${row.map(x =>
+    `<span class="spec"><i>${esc(x[0])}</i><b>${esc(x[1])}</b></span>`).join("")}</div>`).join("")}
 
   ${r.link ? `<div class="cta"><a class="btn" href="${esc(r.link)}" target="_blank" rel="noopener">Buka halaman penjualan</a></div>` : ""}
 
@@ -2938,8 +2943,9 @@ function navHTML(v){
    8. EDITOR
    ========================================================= */
 function newRecipe(kind){
-  if(kind === "bean") return {id:"", kind:"bean", name:"", tone:"gold", art:"beans",
-    roastery:"", flavor:"", link:"", process:"", origin:"", roast:"", entries:[]};
+  if(kind === "bean") return {id:"", kind:"bean", name:"", tone:"gold", art:"beanbag",
+    roastery:"", producer:"", variety:"", flavor:"", link:"",
+    process:"", origin:"", roast:"", entries:[]};
   if(kind === "esp") return {id:"", kind:"esp", name:"", cat:"espresso", tone:"green", art:"espmachine",
     dose:18, out:36, time:28, preinf:0, grind:"", basket:"", temp:"", machine:"",
     flavor:"", tips:"", phases:[]};
@@ -2985,6 +2991,10 @@ function editView(){
   } else if(d.kind === "bean"){
     body = `
     <div class="field"><label>Roastery</label><input id="f-roastery" value="${esc(d.roastery)}" placeholder="Misal Arkana Roastery"></div>
+    <div class="grid2">
+      <div class="field"><label>Producer / petani</label><input id="f-producer" value="${esc(d.producer || "")}" placeholder="Misal Pak Sabar"></div>
+      <div class="field"><label>Varietas</label><input id="f-variety" value="${esc(d.variety || "")}" placeholder="Misal Sigararutang"></div>
+    </div>
     <div class="field"><label>Taste note</label><input id="f-flavor" value="${esc(d.flavor)}" placeholder="Cokelat, jeruk, gula aren"></div>
     <div class="field"><label>Link penjualan</label><input id="f-link" type="url" value="${esc(d.link)}" placeholder="https://"></div>
     <div class="grid3">
@@ -3193,6 +3203,8 @@ function collectDraft(){
     d.steps.sort((a,b) => a.at - b.at);
   } else if(d.kind === "bean"){
     d.roastery = q("#f-roastery").value.trim();
+    d.producer = q("#f-producer").value.trim();
+    d.variety = q("#f-variety").value.trim();
     d.flavor = q("#f-flavor").value.trim();
     d.link = q("#f-link").value.trim();
     d.process = q("#f-process").value.trim();
