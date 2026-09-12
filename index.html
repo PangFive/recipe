@@ -3470,40 +3470,56 @@ function bind(v){
   app.querySelectorAll("[data-import]").forEach(im => im.onclick = () => app.querySelector("#fimp").click());
   const fi = app.querySelector("#fimp");
   if(fi) fi.onchange = e => {
-    const f = e.target.files[0]; if(!f) return;
+    const f = e.target.files[0];
+    e.target.value = "";           /* supaya file yang sama bisa dipilih lagi */
+    if(!f) return;
     const rd = new FileReader();
-    rd.onload = () => {
-      try{
-        const d = JSON.parse(rd.result);
-        const masuk = d.custom || {};
-        Object.values(masuk).forEach(r => { if(!r.updatedAt) r.updatedAt = Date.now(); });
-        store.custom = Object.assign({}, store.custom, masuk);
-        store.favs = [...new Set((store.favs || []).concat(d.favs || []))];
-        store.metaAt = Date.now();
-        migrateStore();
-        saveStore(); render();
-      }catch(err){ alert("File cadangan tidak terbaca."); }
+    rd.onload = async () => {
+      let d;
+      try{ d = JSON.parse(rd.result); }
+      catch(err){
+        await askChoice("File tidak terbaca", "Isi file bukan JSON yang sah, jadi tidak ada yang diubah.",
+          [{label:"Mengerti", value:"ok"}]);
+        return;
+      }
+      const masuk = d.custom || {};
+      const daftar = Object.values(masuk);
+      if(!daftar.length){
+        await askChoice("Tidak ada resep", "File ini tidak berisi resep atau catatan.", [{label:"Mengerti", value:"ok"}]);
+        return;
+      }
+
+      const per = {};
+      daftar.forEach(r => { per[r.kind] = (per[r.kind] || 0) + 1; });
+      const rincian = Object.keys(per).map(k => per[k] + " " + kindName(k).toLowerCase()).join(", ");
+      const baru = daftar.filter(r => !store.custom[r.id]).length;
+      const timpa = daftar.length - baru;
+      const favBaru = (d.favs || []).filter(x => !(store.favs || []).includes(x)).length;
+
+      const pesan = "Berisi " + daftar.length + " entri: " + rincian + ". " +
+        baru + " entri baru" + (timpa ? ", " + timpa + " menimpa entri yang sudah ada dengan id sama" : "") +
+        (favBaru ? ", " + favBaru + " tanda bintang ikut masuk" : "") +
+        ". Data yang sekarang tidak dihapus, hanya ditambah dan ditimpa.";
+
+      const pilih = await askChoice("Impor " + f.name, pesan,
+        [{label:"Impor sekarang", value:"y"},
+         {label:"Ekspor dulu, lalu impor", value:"ekspor"},
+         {label:"Batal", value:null}]);
+      if(!pilih) return;
+      if(pilih === "ekspor"){ exportData(); await new Promise(r2 => setTimeout(r2, 900)); }
+
+      Object.values(masuk).forEach(r => { if(!r.updatedAt) r.updatedAt = Date.now(); });
+      store.custom = Object.assign({}, store.custom, masuk);
+      store.favs = [...new Set((store.favs || []).concat(d.favs || []))];
+      store.metaAt = Date.now();
+      migrateStore();
+      saveStore();
+      render();
+      await askChoice("Impor selesai", daftar.length + " entri masuk. Total sekarang " + recipes().length + " entri.",
+        [{label:"Selesai", value:"ok"}]);
     };
     rd.readAsText(f);
   };
-  app.querySelectorAll("[data-pick]").forEach(b => b.onclick = async () => {
-    const id = b.dataset.pick;
-    const inp = app.querySelector("#" + id);
-    if(!inp) return;
-    const v = await openPicker(b.dataset.title, pickerOptions(id), inp.value, id === "f-dripper");
-    if(v === null) return;
-    inp.value = v;
-    if(state.view === "edit"){
-      collectDraft();
-      if(id === "f-dripper"){
-        const tebak = artFromDripper(v, !!state.draft.ice);
-        if(tebak) state.draft.art = tebak;
-      }
-      render();
-    }else if(state.view === "admin"){
-      ADM.draft = collectParams(); render();
-    }else render();
-  });
 
   const back = app.querySelector("[data-back]");
   if(back) back.onclick = () => go(
