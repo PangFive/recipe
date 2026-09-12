@@ -3275,6 +3275,19 @@ function validate(d){
    9. BINDINGS
    ========================================================= */
 function bind(v){
+  /* Dropdown kustom (pickField): buka popup pilihan, tulis balik ke input tersembunyi. */
+  app.querySelectorAll("[data-pick]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.pick;
+    const inp = app.querySelector("#" + id);
+    if(!inp) return;
+    const v = await openPicker(b.dataset.title || "Pilih", pickerOptions(id), inp.value, id === "f-dripper");
+    if(v == null) return;
+    inp.value = v;
+    /* simpan isian lain yang sedang diketik sebelum tampilan digambar ulang */
+    if(id.startsWith("p-icon")) ADM.draft = collectParams();
+    else if(state.draft && app.querySelector("#f-name")) collectDraft();
+    render();
+  });
   app.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
     const k = b.dataset.kind;
     if(k){ state.cat = k; state.q = ""; }
